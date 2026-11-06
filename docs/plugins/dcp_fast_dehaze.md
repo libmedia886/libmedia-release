@@ -1,6 +1,6 @@
 # dcp_fast_dehaze
 
-[← 返回模块索引](../README.md)
+[← 返回模块索引](../README.zh-CN.md)
 
 | type 名 | 类型 |
 | --- | --- |
