@@ -1,0 +1,48 @@
+# libmedia 发布包
+
+[English](README.md) | **简体中文**
+
+`libmedia` 的二进制发布仓库。
+
+## 内容说明
+
+- `lib/libmedia.so`：核心库，已内嵌 Ed25519 公钥。
+- `plugins/*.so`：外部模块。
+- `plugins/*.so.sig`：与每个插件逐字节对应的分离签名。
+- `include/`：应用侧与插件侧公开头文件。
+- `examples/minimal/`：加载单个已签名插件的示例。
+- `examples/load_all/`：扫描并加载发布目录内全部已签名插件的示例。
+
+本仓库不包含任何私钥或 PEM 文件。核心库中已经包含用于验签的公钥。
+
+## 签名校验
+
+每个插件都通过 `MEDIA_PLUGIN_LoadSelf()` 加载，该函数在映射插件映像之前，会先用同目录下的 `.sig` 文件验签。出现以下情况时插件会被拒绝加载：
+
+- `.sig` 文件不存在；
+- 插件的任何一个字节被修改；
+- 签名由其他密钥生成。
+
+`.sig` 文件由发布密钥生成，必须与插件一同分发，请勿修改或删除。
+
+## 编译 minimal 示例
+
+```sh
+cmake -S examples/minimal -B build/minimal
+cmake --build build/minimal
+(cd build/minimal && ./libmedia_minimal)
+```
+
+插件的 `.so` 与其同目录下的 `.so.sig` 必须同时存在。缺少任意一个，或插件内容被改动，`MEDIA_PLUGIN_Load()` 都会拒绝加载。
+
+## 编译 load_all 示例
+
+```sh
+cmake -S examples/load_all -B build/load_all
+cmake --build build/load_all
+(cd build/load_all && ./libmedia_load_all)
+```
+
+该示例会加载 `../../plugins` 下的全部插件并打印成功加载的数量。注意：单个进程同时最多持有 `MEDIA_PLUGIN_MAX_LOADED`（32）个插件，超出部分会报 `too many plugins loaded`。实际应用中应只加载自己需要的模块。
+
+签名密钥单独维护。新版本发布前必须先完成签名。
