@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-#define MEDIA_PLUGIN_ABI_VERSION 1u
+#define MEDIA_PLUGIN_ABI_VERSION 2u  /* 2: 0.9.0 删除 MEDIA_PLUGIN_Register，改为 MEDIA_PLUGIN_LoadSelf */
 
 /* 每个插件实例最多的输入/输出端口数（端口名固定为 inputN / outputN）。 */
 #define MEDIA_PLUGIN_MAX_PORTS 16
@@ -151,12 +151,18 @@ MEDIA_PLUGIN_EXPORT const MEDIA_PLUGIN_DESC *media_plugin_entry(uint32_t host_ab
 /* ===== 框架服务（由 libmedia 导出，插件直接调用） ===== */
 
 /*
- * 直接链接进应用的模块库（例如 libmedia_tpg.so 自带 MEDIA_TPG_* API）在首次调用自身 API 时
- * 用它注册类描述，无需 dlopen。重复注册同一 desc 返回同一 plugin_id；之后若同一库又被
- * MEDIA_PLUGIN_Load / MEDIA_PLUGIN_PATH 加载，也返回该 id。返回 plugin_id 或负错误码。
- * MEDIA_SYS_Exit 会注销全部插件，模块库应在下次调用时再次注册。
+ * 直接链接进应用的模块库（例如 libmedia_tpg.so 自带 MEDIA_TPG_* API）在自身 API 的 init 路径
+ * 调用它，把 desc 所在的已签名映像加载进 libmedia（0.9.0 起取代已删除的 MEDIA_PLUGIN_Register）。
+ *
+ * desc 必须是插件映像内的静态描述（不能在堆或栈上构造）。libmedia 从 /proc/self/maps 找到
+ * desc 所在的文件，按与 MEDIA_PLUGIN_Load 相同的规则校验 <file>.sig，并要求 desc、classes 及
+ * 全部回调指针都位于这个已验签文件里；任一项不满足返回 MEDIA_ERR_PLUGIN_SIGNATURE。
+ *
+ * 重复调用同一 desc 返回同一 plugin_id（已加载时不再读文件）；同一库被 MEDIA_PLUGIN_Load /
+ * MEDIA_PLUGIN_PATH 加载过时也返回该 id。返回 plugin_id 或负错误码。
+ * MEDIA_SYS_Exit 会注销全部插件，模块库应在下次调用时再次调用本函数。
  */
-int MEDIA_PLUGIN_Register(const MEDIA_PLUGIN_DESC *desc);
+int MEDIA_PLUGIN_LoadSelf(const MEDIA_PLUGIN_DESC *desc);
 
 /* 声明端口，返回端口序号（inputN/outputN 的 N），失败返回负错误码。只能在 create 中调用。 */
 int MEDIA_PLUGIN_AddInputPort(MEDIA_PLUGIN_CTX *ctx, const MEDIA_PLUGIN_PORT_ATTR *attr);

@@ -18,9 +18,9 @@ extern "C" {
 #endif
 
 #define MEDIA_API_VERSION_MAJOR 0
-#define MEDIA_API_VERSION_MINOR 8
+#define MEDIA_API_VERSION_MINOR 9
 #define MEDIA_API_VERSION_PATCH 0
-#define MEDIA_API_VERSION_STR "0.8.0"
+#define MEDIA_API_VERSION_STR "0.9.0"
 
 typedef int MEDIA_DEV;
 typedef int MEDIA_CHN;
@@ -40,6 +40,8 @@ typedef enum {
     MEDIA_ERR_BUSY = -1010,
     MEDIA_ERR_ABI_MISMATCH = -1011,
     MEDIA_ERR_TIMEOUT = -1012,
+    /* 插件文件缺少 .sig、签名不匹配，或运行中的映像与验签文件不是同一个文件（0.9.0）。 */
+    MEDIA_ERR_PLUGIN_SIGNATURE = -1013,
 } MEDIA_STATUS;
 
 typedef struct {
@@ -444,6 +446,7 @@ typedef struct {
     int instance_count;
 } MEDIA_PLUGIN_INFO;
 
+// Load 前校验同目录下的 <path>.sig（Ed25519，公钥内嵌在 libmedia.so 中）；失败返回 MEDIA_ERR_PLUGIN_SIGNATURE。
 int MEDIA_PLUGIN_Load(const char *path);          // 返回 plugin_id (>=0) 或负错误码
 int MEDIA_PLUGIN_LoadDir(const char *dir);        // 返回成功加载的插件数量或负错误码
 int MEDIA_PLUGIN_Unload(int plugin_id);           // 仍有实例时返回 MEDIA_ERR_BUSY
