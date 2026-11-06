@@ -10,8 +10,15 @@
 - `plugins/*.so`：外部模块。
 - `plugins/*.so.sig`：与每个插件逐字节对应的分离签名。
 - `include/`：应用侧与插件侧公开头文件。
+- `docs/`：[模块索引](docs/README.md) —— 每个模块的 type 名、端口、配置字段与限制。
 - `examples/minimal/`：加载单个已签名插件的示例。
 - `examples/load_all/`：扫描并加载发布目录内全部已签名插件的示例。
+
+### 模块一览
+
+发布包内含 37 个外部模块。请从[模块索引](docs/README.md)开始，那里链接到每个模块的单独页面（type 名、类型、端口、配置字段、使用示例与已知限制）。
+
+数据源：`vi` `tpg` `vdec` `audio` · 处理：`vpss` `vmix` `vmix_rga` `osd` `rga` `csc_rga` `resize_rga` `transform` `dualview` `stereo_3d` `svm_3d` `panorama` · 融合：`mcf_fusion` `thermal` `thermal_lowlight_fusion` `fluo_visible_fusion` `exposure_fusion` `blend_pyr` `edof` · 增强：`eis` `tnr` `wavelet_nr` `clahe` `retinex` `highlight_suppress` `cap_dehaze` `dcp_fast_dehaze` `demosaic` `conv` `raw_wb` · 输出：`vo` `vo_wbc` `venc`
 
 本仓库不包含任何私钥或 PEM 文件。核心库中已经包含用于验签的公钥。
 

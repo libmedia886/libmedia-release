@@ -10,8 +10,15 @@ Binary release mirror for `libmedia`.
 - `plugins/*.so`: external modules.
 - `plugins/*.so.sig`: detached signatures matched to each plugin byte-for-byte.
 - `include/`: public application and plugin headers.
+- `docs/`: [module index](docs/README.md) — per-module type names, ports, configuration and limits.
 - `examples/minimal/`: load one signed plugin.
 - `examples/load_all/`: scan and load all signed plugins in the release directory.
+
+### Modules
+
+The release ships 37 external modules. Start from the [module index](docs/README.md), which links to a page per module (type name, kind, ports, configuration fields, usage and known limits).
+
+Sources: `vi` `tpg` `vdec` `audio` · Processing: `vpss` `vmix` `vmix_rga` `osd` `rga` `csc_rga` `resize_rga` `transform` `dualview` `stereo_3d` `svm_3d` `panorama` · Fusion: `mcf_fusion` `thermal` `thermal_lowlight_fusion` `fluo_visible_fusion` `exposure_fusion` `blend_pyr` `edof` · Enhancement: `eis` `tnr` `wavelet_nr` `clahe` `retinex` `highlight_suppress` `cap_dehaze` `dcp_fast_dehaze` `demosaic` `conv` `raw_wb` · Output: `vo` `vo_wbc` `venc`
 
 No private key or PEM file is included in this release repository. The core library already contains the verification public key.
 
