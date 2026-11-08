@@ -14,13 +14,19 @@ set_target_properties(media PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${LIBMEDIA_ROOT}/include"
 )
 
+add_library(plugin SHARED IMPORTED GLOBAL)
+set_target_properties(plugin PROPERTIES
+    IMPORTED_LOCATION "${PLUGIN_PATH}"
+    INTERFACE_INCLUDE_DIRECTORIES "${LIBMEDIA_ROOT}/include"
+)
+
 add_executable(raw_wb_tutorial main.c)
 target_compile_definitions(raw_wb_tutorial PRIVATE
     PLUGIN_BASENAME="libmedia_raw_wb.so"
     MODULE_TYPES="RAW_WB"
     PRIMARY_TYPE="RAW_WB"
 )
-target_link_libraries(raw_wb_tutorial PRIVATE media dl pthread m)
+target_link_libraries(raw_wb_tutorial PRIVATE media plugin dl pthread m)
 set_target_properties(raw_wb_tutorial PROPERTIES
-    BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
+    BUILD_RPATH "${LIBMEDIA_ROOT}/lib;${LIBMEDIA_ROOT}/plugins"
 )

@@ -1,19 +1,26 @@
 # TPG 测试图案源教程
 
-这个示例创建 `TPG` SOURCE，生成一帧 640×480 NV12 色条并保存成原始文件。
+这个示例创建 `TPG` SOURCE，生成一帧 NV12 测试图案并保存成原始文件。可以改变尺寸和图案，直接比较输出差异。
 
 ## 编译和运行
 
 ```sh
 cmake -S examples/tpg -B build/tpg
 cmake --build build/tpg -j2
-(cd build/tpg && ./tpg_tutorial [输出文件])
+(cd build/tpg && ./tpg_tutorial [输出文件] [宽] [高] [图案])
 ```
 
 默认输出 `build/tpg/tpg_frame.nv12`。可以用 ffplay 查看：
 
 ```sh
 ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 build/tpg/tpg_frame.nv12
+```
+
+图案参数：`0` 色条、`1` 棋盘格、`2` 渐变、`3` 纯色、`4` 移动方块。例如：
+
+```sh
+(cd build/tpg && ./tpg_tutorial gradient.nv12 1280 720 2)
+ffplay -f rawvideo -pixel_format nv12 -video_size 1280x720 build/tpg/gradient.nv12
 ```
 
 ## 参数和流程

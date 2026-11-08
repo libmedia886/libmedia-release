@@ -14,13 +14,19 @@ set_target_properties(media PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${LIBMEDIA_ROOT}/include"
 )
 
+add_library(plugin SHARED IMPORTED GLOBAL)
+set_target_properties(plugin PROPERTIES
+    IMPORTED_LOCATION "${PLUGIN_PATH}"
+    INTERFACE_INCLUDE_DIRECTORIES "${LIBMEDIA_ROOT}/include"
+)
+
 add_executable(vo_tutorial main.c)
 target_compile_definitions(vo_tutorial PRIVATE
     PLUGIN_BASENAME="libmedia_vo.so"
     MODULE_TYPES="VO"
     PRIMARY_TYPE="VO"
 )
-target_link_libraries(vo_tutorial PRIVATE media dl pthread m)
+target_link_libraries(vo_tutorial PRIVATE media plugin dl pthread m)
 set_target_properties(vo_tutorial PROPERTIES
-    BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
+    BUILD_RPATH "${LIBMEDIA_ROOT}/lib;${LIBMEDIA_ROOT}/plugins"
 )

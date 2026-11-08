@@ -64,7 +64,7 @@ LD_LIBRARY_PATH=plugins:lib ./build/vi_mipi/vi_mipi \
 NV12 文件可以用 ffplay 检查（尺寸按 `info.txt` 中实际值填写）：
 
 ```sh
-ffplay -f rawvideo -pixel_format nv12 -video_size 1280x720 frames_vi/frame_000.nv12
+ffplay -f rawvideo -pixel_format nv12 -video_size 3840x2160 frames_vi/frame_000.nv12
 ```
 
 ## 代码流程

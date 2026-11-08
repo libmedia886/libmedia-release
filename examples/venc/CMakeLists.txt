@@ -14,13 +14,19 @@ set_target_properties(media PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${LIBMEDIA_ROOT}/include"
 )
 
+add_library(plugin SHARED IMPORTED GLOBAL)
+set_target_properties(plugin PROPERTIES
+    IMPORTED_LOCATION "${PLUGIN_PATH}"
+    INTERFACE_INCLUDE_DIRECTORIES "${LIBMEDIA_ROOT}/include"
+)
+
 add_executable(venc_tutorial main.c)
 target_compile_definitions(venc_tutorial PRIVATE
     PLUGIN_BASENAME="libmedia_venc.so"
     MODULE_TYPES="VENC"
     PRIMARY_TYPE="VENC"
 )
-target_link_libraries(venc_tutorial PRIVATE media dl pthread m)
+target_link_libraries(venc_tutorial PRIVATE media plugin dl pthread m)
 set_target_properties(venc_tutorial PROPERTIES
-    BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
+    BUILD_RPATH "${LIBMEDIA_ROOT}/lib;${LIBMEDIA_ROOT}/plugins"
 )

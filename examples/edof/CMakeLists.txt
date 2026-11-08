@@ -20,7 +20,7 @@ target_compile_definitions(edof_tutorial PRIVATE
     MODULE_TYPES="EDOF_CL"
     PRIMARY_TYPE="EDOF_CL"
 )
-target_link_libraries(edof_tutorial PRIVATE media dl pthread m)
+target_link_libraries(edof_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(edof_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

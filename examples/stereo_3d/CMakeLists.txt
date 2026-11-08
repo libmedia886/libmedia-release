@@ -20,7 +20,7 @@ target_compile_definitions(stereo_3d_tutorial PRIVATE
     MODULE_TYPES="STEREO_3D"
     PRIMARY_TYPE="STEREO_3D"
 )
-target_link_libraries(stereo_3d_tutorial PRIVATE media dl pthread m)
+target_link_libraries(stereo_3d_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(stereo_3d_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

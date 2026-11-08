@@ -20,7 +20,7 @@ target_compile_definitions(svm_3d_tutorial PRIVATE
     MODULE_TYPES="SVM3D"
     PRIMARY_TYPE="SVM3D"
 )
-target_link_libraries(svm_3d_tutorial PRIVATE media dl pthread m)
+target_link_libraries(svm_3d_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(svm_3d_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

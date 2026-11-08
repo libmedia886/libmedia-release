@@ -1,1 +1,14 @@
-#include "../common/plugin_smoke.c"
+/* PANO tutorial: two synthetic NV12 camera frames with an identity LUT. */
+#include <linux/dma-buf.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "media_api.h"
+#include "media_panorama.h"
+#define W 640
+#define H 480
+#define PA 27
+#define PB 28
+#define PO 29
+static int mk(int pool,const MEDIA_VIDEO_LAYOUT*l,size_t n,int k,MEDIA_BUFFER*b){MEDIA_BUFFER_META m;unsigned char*p;if(MEDIA_POOL_GetBuffer(pool,b))return-1;p=MEDIA_POOL_GetVaddr(*b);if(!p||MEDIA_POOL_BeginCpuAccess(*b,DMA_BUF_SYNC_WRITE))goto bad;memset(p,0,n);for(int y=0;y<H;y++)for(int x=0;x<W;x++)p[(size_t)y*l->pitch_bytes[0]+x]=(unsigned char)(k?60+y*160/H:60+x*160/W);for(int y=0;y<H/2;y++)for(int x=0;x<W;x+=2){unsigned char*q=p+l->offset_bytes[1]+(size_t)y*l->pitch_bytes[1]+x;q[0]=100;q[1]=160;}MEDIA_POOL_EndCpuAccess(*b,DMA_BUF_SYNC_WRITE);memset(&m,0,sizeof(m));m.valid=1;m.type=MEDIA_BUFFER_META_VIDEO_FRAME;m.media_format=MEDIA_FORMAT_NV12;m.len=n;m.u.video=*l;m.time_stamp=1000000;m.seq=1;if(MEDIA_BUFFER_SetMeta(*b,&m)==0)return 0;bad:MEDIA_POOL_PutBuffer(*b);return-1;}
+int main(int argc,char**argv){const char*outp=argc>1?argv[1]:"panorama_frame.nv12";const char*plugin=argc>2?argv[2]:"../../plugins/libmedia_panorama.so"; const char*pto=argc>3?argv[3]:NULL;int r=1,cr=0,st=0;MEDIA_VIDEO_LAYOUT l;size_t n=0;MEDIA_BUFFER a,b,o;MEDIA_BUFFER_META m;FILE*f;if(MEDIA_SYS_Init()!=0||MEDIA_PLUGIN_Load(plugin)<0)goto done;if(MEDIA_VIDEO_BuildLinearLayout(W,H,MEDIA_FORMAT_NV12,&l,&n)!=0)goto done;if(MEDIA_POOL_CreateWithMode(PA,n,4,MEDIA_POOL_ALLOC_MODE_NATIVE)||MEDIA_POOL_CreateWithMode(PB,n,4,MEDIA_POOL_ALLOC_MODE_NATIVE)||MEDIA_POOL_CreateWithMode(PO,n,4,MEDIA_POOL_ALLOC_MODE_NATIVE))goto done;MEDIA_PANO_ATTR x;memset(&x,0,sizeof(x));x.pto_path=pto; x.input_count=2;x.in_width=W;x.in_height=H;x.out_width=W;x.out_height=H;x.in_stride=l.pitch_bytes[0];x.out_stride=l.pitch_bytes[0];x.output_pool_id=PO;x.input_depth=4;x.sync_timeout_ms=100;x.sync_wait_inputs=1;x.output_compress=MEDIA_VIDEO_COMPRESS_NONE;r=MEDIA_PLUGIN_CreateModule("PANO",0,&x,sizeof(x));if(r)goto done;cr=1;r=MEDIA_PLUGIN_Start("PANO",0);if(r)goto done;st=1;if(mk(PA,&l,n,0,&a)||mk(PB,&l,n,1,&b))goto done;if(MEDIA_PANO_SendFrame(0,0,a,1000)||MEDIA_PANO_SendFrame(0,1,b,1000))goto done;r=MEDIA_PANO_GetFrame(0,&o,5000);if(r)goto done;if(MEDIA_BUFFER_GetMeta(o,&m)||MEDIA_POOL_BeginCpuAccess(o,DMA_BUF_SYNC_READ)){MEDIA_PANO_ReleaseFrame(0,o);goto done;}f=fopen(outp,"wb");void*p=MEDIA_POOL_GetVaddr(o);size_t z=m.len<MEDIA_POOL_GetSize(o)?m.len:MEDIA_POOL_GetSize(o);r=(f&&p&&fwrite(p,1,z,f)==z)?0:1;if(f)fclose(f);MEDIA_POOL_EndCpuAccess(o,DMA_BUF_SYNC_READ);MEDIA_PANO_ReleaseFrame(0,o);if(!r)printf("PANO %ux%u bytes=%zu -> %s\n",m.u.video.visible_width,m.u.video.visible_height,z,outp);done:if(st)MEDIA_PLUGIN_Stop("PANO",0);if(cr)MEDIA_PLUGIN_DestroyModule("PANO",0);MEDIA_POOL_Destroy(PO);MEDIA_POOL_Destroy(PB);MEDIA_POOL_Destroy(PA);MEDIA_SYS_Exit();return r?1:0;}

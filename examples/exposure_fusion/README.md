@@ -1,18 +1,6 @@
-# exposure_fusion 模块教程
+# exposure_fusion 实帧教程
 
-这个目录用于学习和检查 `EXPOSURE_FUSION_CL` 模块：双路曝光融合。
-
-## 模块参数
-
-| 项目 | 值 |
-| --- | --- |
-| 插件 | `plugins/libmedia_exposure_fusion.so` |
-| 签名 | `plugins/libmedia_exposure_fusion.so.sig` |
-| 公共头 | [`include/media_exposure_fusion.h`](../../include/media_exposure_fusion.h) |
-| type | `EXPOSURE_FUSION_CL` |
-| 完整参数与限制 | [`docs/plugins/exposure_fusion.md`](../../docs/plugins/exposure_fusion.md) |
-
-属性结构体、输入输出端口、格式、尺寸、Pool 要求和运行时参数，以公共头文件和模块文档为准。滤镜类模块需要上游帧、输出 Pool 以及与硬件格式匹配的配置，不能用一个空配置伪造通用帧；这个教程程序因此专门验证模块发布物本身。
+两幅程序生成的测试图经过 `EXPOSURE_FUSION_CL` 模块处理，保存原始输出帧。第一幅是横向亮度渐变，第二幅是纵向亮度渐变；输入是真实 DMA-BUF 帧，带 VIDEO_FRAME metadata。程序完成创建 Pool、加载签名插件、创建模块、启停、送帧、取帧和归还。处理依赖 RK3588 的 GPU 或 RGA 驱动。
 
 ## 编译和运行
 
@@ -21,21 +9,14 @@
 ```sh
 cmake -S examples/exposure_fusion -B build/exposure_fusion
 cmake --build build/exposure_fusion -j2
-(cd build/exposure_fusion && ./exposure_fusion_tutorial)
+(cd build/exposure_fusion && ./exposure_fusion_tutorial 0)
+(cd build/exposure_fusion && ./exposure_fusion_tutorial 1 second.nv12)
 ```
 
-也可以指定插件的绝对路径：
+参数一是模式整数；参数二是输出路径，参数三可选指定插件绝对路径。输入尺寸固定 640×480，格式 `NV12`；输出尺寸由该模块的布局决定。输出是无文件头原始像素，实际尺寸、字节数由程序打印。`ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 <file>` 可查看默认模式结果。
 
-```sh
-./build/exposure_fusion/exposure_fusion_tutorial "$PWD/plugins/libmedia_exposure_fusion.so"
-```
+## 参数差异
 
-程序会初始化 `libmedia.so`，调用 `MEDIA_PLUGIN_Load()` 验证相邻 `.sig`，然后打印插件版本、路径、注册 class 数和 type。输出 `signed plugin smoke test passed` 表示签名、ABI、动态依赖和插件入口都通过。
+mode 0 contrast_power=1; mode 1 contrast_power=2。两组输出可以逐字节比较，观察参数改变的实际效果。
 
-## 接入实际管线
-
-1. 先按上面的命令确认发布包和签名完整。
-2. 阅读模块文档和公共头文件中的属性结构体、端口 API 与示例配置。
-3. 用 `MEDIA_VIDEO_BuildLinearLayout()` 创建正确尺寸和格式的 Pool。
-4. 通过 `MEDIA_SYS_Bind()` 连接输入输出，或使用模块头文件中的 `SendFrame/GetFrame` API。
-5. 处理结束时按模块文档顺序 Disable、Destroy、Release Pool。
+公共配置在 [media_exposure_fusion.h](../../include/media_exposure_fusion.h)，完整限制见 [模块文档](../../docs/plugins/exposure_fusion.md)。示例中的测试图只用于说明处理管线；真实场景应替换为同步采集的两路传感器帧。

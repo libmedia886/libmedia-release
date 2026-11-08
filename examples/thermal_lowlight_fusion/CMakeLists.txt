@@ -20,7 +20,7 @@ target_compile_definitions(thermal_lowlight_fusion_tutorial PRIVATE
     MODULE_TYPES="THERMAL_LOWLIGHT_FUSION_CL"
     PRIMARY_TYPE="THERMAL_LOWLIGHT_FUSION_CL"
 )
-target_link_libraries(thermal_lowlight_fusion_tutorial PRIVATE media dl pthread m)
+target_link_libraries(thermal_lowlight_fusion_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(thermal_lowlight_fusion_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

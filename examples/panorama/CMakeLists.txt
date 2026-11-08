@@ -20,7 +20,7 @@ target_compile_definitions(panorama_tutorial PRIVATE
     MODULE_TYPES="PANO, AVM"
     PRIMARY_TYPE="PANO"
 )
-target_link_libraries(panorama_tutorial PRIVATE media dl pthread m)
+target_link_libraries(panorama_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(panorama_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

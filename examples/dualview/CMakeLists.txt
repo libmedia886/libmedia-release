@@ -20,7 +20,7 @@ target_compile_definitions(dualview_tutorial PRIVATE
     MODULE_TYPES="DUALVIEW"
     PRIMARY_TYPE="DUALVIEW"
 )
-target_link_libraries(dualview_tutorial PRIVATE media dl pthread m)
+target_link_libraries(dualview_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(dualview_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

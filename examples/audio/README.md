@@ -1,41 +1,10 @@
-# audio 模块教程
+# audio 教程：PCM → G711A
 
-这个目录用于学习和检查 `AUDIO_IN, AUDIO_OUT, AUDIO_ENC, AUDIO_DEC` 模块：ALSA 音频输入输出与 AAC 编解码。
-
-## 模块参数
-
-| 项目 | 值 |
-| --- | --- |
-| 插件 | `plugins/libmedia_audio.so` |
-| 签名 | `plugins/libmedia_audio.so.sig` |
-| 公共头 | [`include/media_audio.h`](../../include/media_audio.h) |
-| type | `AUDIO_IN, AUDIO_OUT, AUDIO_ENC, AUDIO_DEC` |
-| 完整参数与限制 | [`docs/plugins/audio.md`](../../docs/plugins/audio.md) |
-
-属性结构体、输入输出端口、格式、尺寸、Pool 要求和运行时参数，以公共头文件和模块文档为准。滤镜类模块需要上游帧、输出 Pool 以及与硬件格式匹配的配置，不能用一个空配置伪造通用帧；这个教程程序因此专门验证模块发布物本身。
-
-## 编译和运行
-
-在发布包根目录执行：
+程序在 HOST pool 中生成一帧 8 kHz、16 bit、单声道 PCM 三角波，调用 `AUDIO_ENC` 编成 G.711 A-law 并写出码流。无需 ALSA 声卡；`AUDIO_IN/AUDIO_OUT` 需要真实设备。
 
 ```sh
-cmake -S examples/audio -B build/audio
-cmake --build build/audio -j2
-(cd build/audio && ./audio_tutorial)
+cmake -S examples/audio -B build/audio && cmake --build build/audio
+LD_LIBRARY_PATH=lib:plugins ./build/audio/audio_tutorial [out.g711a]
 ```
 
-也可以指定插件的绝对路径：
-
-```sh
-./build/audio/audio_tutorial "$PWD/plugins/libmedia_audio.so"
-```
-
-程序会初始化 `libmedia.so`，调用 `MEDIA_PLUGIN_Load()` 验证相邻 `.sig`，然后打印插件版本、路径、注册 class 数和 type。输出 `signed plugin smoke test passed` 表示签名、ABI、动态依赖和插件入口都通过。
-
-## 接入实际管线
-
-1. 先按上面的命令确认发布包和签名完整。
-2. 阅读模块文档和公共头文件中的属性结构体、端口 API 与示例配置。
-3. 用 `MEDIA_VIDEO_BuildLinearLayout()` 创建正确尺寸和格式的 Pool。
-4. 通过 `MEDIA_SYS_Bind()` 连接输入输出，或使用模块头文件中的 `SendFrame/GetFrame` API。
-5. 处理结束时按模块文档顺序 Disable、Destroy、Release Pool。
+修改 `RATE`/`SAMPLES` 可观察采样率和每帧点数对输出长度的影响；G711 支持 80/160/240/320/480 点。AAC 需要 1024 点和 FFmpeg，可按 `include/media_audio.h` 的 `MEDIA_AUDIO_ENC_ATTR` 改为 AAC。

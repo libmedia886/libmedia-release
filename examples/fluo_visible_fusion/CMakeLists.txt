@@ -20,7 +20,7 @@ target_compile_definitions(fluo_visible_fusion_tutorial PRIVATE
     MODULE_TYPES="FLUO_VISIBLE_FUSION_CL"
     PRIMARY_TYPE="FLUO_VISIBLE_FUSION_CL"
 )
-target_link_libraries(fluo_visible_fusion_tutorial PRIVATE media dl pthread m)
+target_link_libraries(fluo_visible_fusion_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(fluo_visible_fusion_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

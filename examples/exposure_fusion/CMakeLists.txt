@@ -20,7 +20,7 @@ target_compile_definitions(exposure_fusion_tutorial PRIVATE
     MODULE_TYPES="EXPOSURE_FUSION_CL"
     PRIMARY_TYPE="EXPOSURE_FUSION_CL"
 )
-target_link_libraries(exposure_fusion_tutorial PRIVATE media dl pthread m)
+target_link_libraries(exposure_fusion_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(exposure_fusion_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

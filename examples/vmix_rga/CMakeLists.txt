@@ -20,7 +20,7 @@ target_compile_definitions(vmix_rga_tutorial PRIVATE
     MODULE_TYPES="VMIX_RGA"
     PRIMARY_TYPE="VMIX_RGA"
 )
-target_link_libraries(vmix_rga_tutorial PRIVATE media dl pthread m)
+target_link_libraries(vmix_rga_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(vmix_rga_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

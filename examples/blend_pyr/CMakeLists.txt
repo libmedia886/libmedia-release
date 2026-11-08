@@ -20,7 +20,7 @@ target_compile_definitions(blend_pyr_tutorial PRIVATE
     MODULE_TYPES="BLEND_PYR"
     PRIMARY_TYPE="BLEND_PYR"
 )
-target_link_libraries(blend_pyr_tutorial PRIVATE media dl pthread m)
+target_link_libraries(blend_pyr_tutorial PRIVATE media "${PLUGIN_PATH}" dl pthread m)
 set_target_properties(blend_pyr_tutorial PROPERTIES
     BUILD_RPATH "${LIBMEDIA_ROOT}/lib"
 )

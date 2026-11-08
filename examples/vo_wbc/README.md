@@ -1,41 +1,10 @@
-# vo_wbc 模块教程
+# vo_wbc 教程：writeback 能力探测
 
-这个目录用于学习和检查 `VO_WBC` 模块：DRM writeback 抓屏。
-
-## 模块参数
-
-| 项目 | 值 |
-| --- | --- |
-| 插件 | `plugins/libmedia_vo_wbc.so` |
-| 签名 | `plugins/libmedia_vo_wbc.so.sig` |
-| 公共头 | [`include/media_vo_wbc.h`](../../include/media_vo_wbc.h) |
-| type | `VO_WBC` |
-| 完整参数与限制 | [`docs/plugins/vo_wbc.md`](../../docs/plugins/vo_wbc.md) |
-
-属性结构体、输入输出端口、格式、尺寸、Pool 要求和运行时参数，以公共头文件和模块文档为准。滤镜类模块需要上游帧、输出 Pool 以及与硬件格式匹配的配置，不能用一个空配置伪造通用帧；这个教程程序因此专门验证模块发布物本身。
-
-## 编译和运行
-
-在发布包根目录执行：
+程序调用 `MEDIA_VO_WBC_Probe` 查询 writeback connector 和 active CRTC。抓帧前必须确认这个能力；没有 writeback 的板卡会明确返回错误。
 
 ```sh
-cmake -S examples/vo_wbc -B build/vo_wbc
-cmake --build build/vo_wbc -j2
-(cd build/vo_wbc && ./vo_wbc_tutorial)
+cmake -S examples/vo_wbc -B build/vo_wbc && cmake --build build/vo_wbc
+LD_LIBRARY_PATH=lib:plugins ./build/vo_wbc/vo_wbc_tutorial
 ```
 
-也可以指定插件的绝对路径：
-
-```sh
-./build/vo_wbc/vo_wbc_tutorial "$PWD/plugins/libmedia_vo_wbc.so"
-```
-
-程序会初始化 `libmedia.so`，调用 `MEDIA_PLUGIN_Load()` 验证相邻 `.sig`，然后打印插件版本、路径、注册 class 数和 type。输出 `signed plugin smoke test passed` 表示签名、ABI、动态依赖和插件入口都通过。
-
-## 接入实际管线
-
-1. 先按上面的命令确认发布包和签名完整。
-2. 阅读模块文档和公共头文件中的属性结构体、端口 API 与示例配置。
-3. 用 `MEDIA_VIDEO_BuildLinearLayout()` 创建正确尺寸和格式的 Pool。
-4. 通过 `MEDIA_SYS_Bind()` 连接输入输出，或使用模块头文件中的 `SendFrame/GetFrame` API。
-5. 处理结束时按模块文档顺序 Disable、Destroy、Release Pool。
+探测成功后按 `docs/plugins/vo_wbc.md` 创建 DMA-BUF pool、设置 NV12 尺寸并调用 `Start/GetFrame`；桌面占用 DRM master 时抓帧会失败。

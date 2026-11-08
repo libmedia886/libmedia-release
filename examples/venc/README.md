@@ -1,41 +1,10 @@
-# venc 模块教程
+# venc 教程：NV12 → H.264
 
-这个目录用于学习和检查 `VENC` 模块：MPP 硬件视频编码。
-
-## 模块参数
-
-| 项目 | 值 |
-| --- | --- |
-| 插件 | `plugins/libmedia_venc.so` |
-| 签名 | `plugins/libmedia_venc.so.sig` |
-| 公共头 | [`include/media_venc.h`](../../include/media_venc.h) |
-| type | `VENC` |
-| 完整参数与限制 | [`docs/plugins/venc.md`](../../docs/plugins/venc.md) |
-
-属性结构体、输入输出端口、格式、尺寸、Pool 要求和运行时参数，以公共头文件和模块文档为准。滤镜类模块需要上游帧、输出 Pool 以及与硬件格式匹配的配置，不能用一个空配置伪造通用帧；这个教程程序因此专门验证模块发布物本身。
-
-## 编译和运行
-
-在发布包根目录执行：
+程序构造 4 帧 320×240 NV12，送入 VENC 并把连续 H.264 packets 写成一个码流文件，便于直接交给 `vdec` 教程。需要 RK3588 MPP 和 `/dev/mpp_service`。
 
 ```sh
-cmake -S examples/venc -B build/venc
-cmake --build build/venc -j2
-(cd build/venc && ./venc_tutorial)
+cmake -S examples/venc -B build/venc && cmake --build build/venc
+LD_LIBRARY_PATH=lib:plugins ./build/venc/venc_tutorial [out.h264]
 ```
 
-也可以指定插件的绝对路径：
-
-```sh
-./build/venc/venc_tutorial "$PWD/plugins/libmedia_venc.so"
-```
-
-程序会初始化 `libmedia.so`，调用 `MEDIA_PLUGIN_Load()` 验证相邻 `.sig`，然后打印插件版本、路径、注册 class 数和 type。输出 `signed plugin smoke test passed` 表示签名、ABI、动态依赖和插件入口都通过。
-
-## 接入实际管线
-
-1. 先按上面的命令确认发布包和签名完整。
-2. 阅读模块文档和公共头文件中的属性结构体、端口 API 与示例配置。
-3. 用 `MEDIA_VIDEO_BuildLinearLayout()` 创建正确尺寸和格式的 Pool。
-4. 通过 `MEDIA_SYS_Bind()` 连接输入输出，或使用模块头文件中的 `SendFrame/GetFrame` API。
-5. 处理结束时按模块文档顺序 Disable、Destroy、Release Pool。
+修改 `video_format` 为 H.265、码率或 GOP 可对比编码参数。输出 pool 必须足够容纳码流；设备不可用时程序会明确报告。

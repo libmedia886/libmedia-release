@@ -1,41 +1,10 @@
-# vo 模块教程
+# vo 教程：显示连接器探测
 
-这个目录用于学习和检查 `VO` 模块：DRM/KMS 零拷贝显示。
-
-## 模块参数
-
-| 项目 | 值 |
-| --- | --- |
-| 插件 | `plugins/libmedia_vo.so` |
-| 签名 | `plugins/libmedia_vo.so.sig` |
-| 公共头 | [`include/media_vo.h`](../../include/media_vo.h) |
-| type | `VO` |
-| 完整参数与限制 | [`docs/plugins/vo.md`](../../docs/plugins/vo.md) |
-
-属性结构体、输入输出端口、格式、尺寸、Pool 要求和运行时参数，以公共头文件和模块文档为准。滤镜类模块需要上游帧、输出 Pool 以及与硬件格式匹配的配置，不能用一个空配置伪造通用帧；这个教程程序因此专门验证模块发布物本身。
-
-## 编译和运行
-
-在发布包根目录执行：
+程序调用 `MEDIA_VO_ProbeConnectors` 列出 DRM connector、连接状态和首选 mode。这一步是创建 VO 前必须做的参数检查；显示输出需要后续配置 DMA-BUF 帧和 connector。
 
 ```sh
-cmake -S examples/vo -B build/vo
-cmake --build build/vo -j2
-(cd build/vo && ./vo_tutorial)
+cmake -S examples/vo -B build/vo && cmake --build build/vo
+LD_LIBRARY_PATH=lib:plugins ./build/vo/vo_tutorial
 ```
 
-也可以指定插件的绝对路径：
-
-```sh
-./build/vo/vo_tutorial "$PWD/plugins/libmedia_vo.so"
-```
-
-程序会初始化 `libmedia.so`，调用 `MEDIA_PLUGIN_Load()` 验证相邻 `.sig`，然后打印插件版本、路径、注册 class 数和 type。输出 `signed plugin smoke test passed` 表示签名、ABI、动态依赖和插件入口都通过。
-
-## 接入实际管线
-
-1. 先按上面的命令确认发布包和签名完整。
-2. 阅读模块文档和公共头文件中的属性结构体、端口 API 与示例配置。
-3. 用 `MEDIA_VIDEO_BuildLinearLayout()` 创建正确尺寸和格式的 Pool。
-4. 通过 `MEDIA_SYS_Bind()` 连接输入输出，或使用模块头文件中的 `SendFrame/GetFrame` API。
-5. 处理结束时按模块文档顺序 Disable、Destroy、Release Pool。
+没有 `/dev/dri/card0` 或 connector 时返回非零并说明原因。根据列出的名字填入 `MEDIA_VO_ATTR.connector`，再用 `MEDIA_VO_CreateChn` + `MEDIA_SYS_Bind` 接入 TPG/VPSS。
