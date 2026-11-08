@@ -6,7 +6,7 @@
 
 - 输入：TPG 生成的 640x360 NV12 彩条。
 - 模块：`TNR_CL`，参数通过命令行改变 `threshold`。
-- 输出：`tnr.nv12`（无文件头；NV12 按 Y 平面后接 UV 平面，RGB 按 packed 字节保存）。
+- 输出：`tnr.nv12.00`、`tnr.nv12.01`（程序取两帧以建立时域历史；无文件头，NV12 按 Y 平面后接 UV 平面保存）。若指定输出前缀 `result.nv12`，实际文件名为 `result.nv12.00` 和 `result.nv12.01`。
 
 第二个参数 threshold（默认 0.12）。程序取两帧以建立历史；阈值增大时更多像素被判为运动。static_alpha=0.35、motion_alpha=0.88。
 
