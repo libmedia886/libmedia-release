@@ -3,7 +3,7 @@
 
 /*
  * libmedia 公共应用 API。libmedia 以 libmedia.so 二进制形式发布，
- * 使用条款见随附 LICENSE.TXT。扩展模块通过插件实现，开发接口见 media_plugin.h。
+ * 使用条款见随附 LICENSE.md。扩展模块通过插件实现，开发接口见 media_plugin.h。
  *
  * 0.8.0 起 core 只保留框架（pipeline / buffer / pool / plugin_host / GPU 服务），
  * 模块全部是外部插件：OSD / VMIX_RGA 等模块的 API 移到各自插件仓库的公共头文件

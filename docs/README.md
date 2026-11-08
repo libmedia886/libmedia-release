@@ -48,6 +48,6 @@ The 37 external modules shipped in this release. Each module page documents its 
 
 ## Loading and verification
 
-Every module is verified through `MEDIA_PLUGIN_LoadSelf()`; the signature file `plugins/<module>.so.sig` must be distributed next to the `.so`. A plugin is rejected if the signature is missing, the plugin has been modified, or the key does not match. See [signature verification](../README.md#signature-verification).
+Explicit loading verifies the signature through `MEDIA_PLUGIN_Load()`; directly linked module libraries verify through `MEDIA_PLUGIN_LoadSelf()` before registration. The signature file `plugins/<module>.so.sig` must be distributed next to the `.so`. A plugin is rejected if the signature is missing, the plugin has been modified, or the key does not match. See [signature verification](../README.md#signature-verification).
 
 A single process holds at most `MEDIA_PLUGIN_MAX_LOADED` (32) plugins. The 37 modules are not meant to be loaded all at once — an application should load only the modules it uses.

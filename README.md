@@ -33,7 +33,7 @@ Free for personal, research and non-profit use. Commercial use — including pro
 
 ## Signature verification
 
-Every plugin is loaded through `MEDIA_PLUGIN_LoadSelf()`, which verifies the plugin image against its adjacent `.sig` file before mapping it. A plugin is rejected when:
+With an explicit `MEDIA_PLUGIN_Load()` call, the core verifies the adjacent `.sig` file before mapping the plugin. When an application links a plugin directly and calls its module API, the dynamic linker has already mapped it; `MEDIA_PLUGIN_LoadSelf()` then verifies its signature before registering its module. A plugin is rejected for loading or registration when:
 
 - the `.sig` file is missing;
 - the plugin has been modified in any byte;

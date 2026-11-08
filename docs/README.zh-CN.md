@@ -48,8 +48,8 @@
 
 ## 加载与验签
 
-所有模块都通过 `MEDIA_PLUGIN_LoadSelf()` 验签，签名文件 `plugins/<模块>.so.sig` 必须与 `.so` 同目录分发。
-缺签名、内容被改动或密钥不符都会被拒绝加载。详见[发布包首页](../README.zh-CN.md#签名校验)。
+显式加载通过 `MEDIA_PLUGIN_Load()` 验签；直接链接模块库则通过 `MEDIA_PLUGIN_LoadSelf()` 在注册时验签。签名文件 `plugins/<模块>.so.sig` 必须与 `.so` 同目录分发。
+缺签名、内容被改动或密钥不符都会被拒绝加载或注册。详见[发布包首页](../README.zh-CN.md#签名校验)。
 
 单个进程同时最多持有 `MEDIA_PLUGIN_MAX_LOADED`（32）个插件。37 个模块不要求同时全部加载，
 应用只加载自己实际用到的模块即可。
