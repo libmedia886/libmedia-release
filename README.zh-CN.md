@@ -19,6 +19,7 @@
 - `examples/load_all/`：扫描并加载发布目录内全部已签名插件的示例。
 - `examples/vpss_16out/`：一路输入、16 路独立配置输出（即上面那张图）。
 - `examples/vi_mipi/`：MIPI camera 经 RKISP 采集 NV12 帧的教程（含参数说明与可直接运行的程序）。
+- `examples/`：[模块教程索引](examples/README.md) —— 其余每个插件也有独立的 README、CMake 和可运行检查程序。
 
 ### 模块一览
 

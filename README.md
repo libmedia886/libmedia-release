@@ -19,6 +19,7 @@ One 1920×1080 NV12 frame in, 16 independently configured outputs out — rotati
 - `examples/load_all/`: scan and load all signed plugins in the release directory.
 - `examples/vpss_16out/`: one input, 16 independently configured VPSS outputs (the demo above).
 - `examples/vi_mipi/`: capture NV12 frames from a MIPI camera through RKISP, with a tutorial README and runnable program.
+- `examples/`: [module tutorial index](examples/README.md); every remaining plugin has its own README, CMake project and runnable check program.
 
 ### Modules
 

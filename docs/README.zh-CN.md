@@ -6,6 +6,8 @@
 
 发布包内的 37 个外部模块。每个模块的文档说明其 type 名、端口、配置字段、使用示例与已知限制。
 
+可运行教程在 [`examples/`](../examples/README.md) 下。每个模块都有自己的 README 和 CMake 工程；采集、TPG、VPSS 教程会完整跑一条帧管线，其余模块教程先验证签名、type、ABI 和动态依赖，再按模块页面接入完整管线。
+
 | 模块 | type 名 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | [vi](plugins/vi.md) | `VI` | SOURCE | V4L2 / HDMI-RX 视频采集 |

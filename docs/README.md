@@ -6,6 +6,8 @@
 
 The 37 external modules shipped in this release. Each module page documents its type name, kind, ports, configuration fields, usage and known limits.
 
+Runnable tutorial directories are under [`examples/`](../examples/README.md). Each module has its own README and CMake project; the capture, TPG and VPSS tutorials also run a complete frame path, while the other module tutorials provide a signed-plugin and type/ABI smoke check before you build a full pipeline from the module page.
+
 | Module | Type name | Kind | Purpose |
 | --- | --- | --- | --- |
 | [vi](plugins/vi.md) | `VI` | SOURCE | V4L2 / HDMI-RX video capture |
