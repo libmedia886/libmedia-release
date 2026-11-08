@@ -5,5 +5,7 @@ Update it whenever adding or editing issue notes.
 
 | Date | Status | Kind | Issue | Summary | Related |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-08 00:07:54 | resolved | runtime | [VDEC 单个访问单元取帧延迟](20261108-0007-vdec.md) | VDEC 对单包 H.264 码流可能尚未产出首帧 |  |
+| 2026-11-08 00:07:54 | resolved | validation | [RGB_U16 没有 canonical layout](20261108-0007-rgb-u16-canonical-layout.md) | MEDIA_VIDEO_BuildLinearLayout 不支持 RGB_U16 |  |
 | 2026-11-07 22:53:58 | fixed | validation | [VI MIPI 示例默认分辨率与板上 ISP 模式不匹配](20261107-2253-vi-mipi-default-mode.md) | 当前 RK3588 MIPI/ISP 输出固定为 3840x2160，1920x1080 请求被 V4L2 QBUF 拒绝。 |  |
 | 2026-11-07 22:36:54 | fixed | link | [16 路 VPSS 示例链接缺少 TPG 和 VPSS 插件](20261107-2236-vpss-16out-missing-plugin-link.md) | 16 路示例只链接 core，调用插件 API 时链接失败。 |  |
