@@ -1,47 +1,29 @@
-# MIPI Camera / VI 采集教程
+# VI / MIPI Camera 入门：从摄像头采集 NV12
 
-这个示例演示如何用 `VI` 模块从 RK3588 的 MIPI camera 采集 NV12 帧，并把 DMA-BUF 内容保存成原始 `.nv12` 文件。程序直接调用 `MEDIA_VI_*` API；不经过 DRM/VO，也不会占用显示器。
+VI（Video Input）把 V4L2 摄像头节点变成 libmedia 的视频源。这个教程以 RK3588 MIPI camera 的 RKISP main path 为例，从 `/dev/video11` 采集 NV12 帧并保存为裸文件。程序不经过 VO，不会自动显示画面，便于先确认“摄像头确实在出流”。
 
-## 先确认设备
+## 1. 先确认硬件和节点
 
-MIPI camera 在 RK3588 上通常经过两类节点：
-
-| 节点 | 用途 | 建议格式 |
-| --- | --- | --- |
-| `/dev/video11` | RKISP main path，已经过 ISP，适合直接得到可查看的 YUV | NV12 |
-| `/dev/video12` | RKISP self path，尺寸和裁剪由当前 ISP 配置决定 | NV12 |
-| `/dev/video0` … `/dev/video9` | RKCIF 直出节点，通常是 Bayer RAW10，供需要原始数据的程序使用 | 由驱动和传感器决定 |
-
-先查看本机节点与格式：
+MIPI 摄像头必须已经接好排线、供电、设备树和 ISP 配置。先查看节点：
 
 ```sh
 v4l2-ctl --list-devices
 v4l2-ctl -d /dev/video11 --list-formats-ext
 v4l2-ctl -d /dev/video0 --list-formats-ext
+media-ctl -p
 ```
 
-本板默认程序使用 `/dev/video11` 和 `3840x2160 NV12`。如果你的传感器没有配置到这个 ISP 输出，先用 `media-ctl`/ISP 配置工具设置 MIPI pipeline，再运行示例。
+常见节点：
 
-## 参数
+| 节点 | 通常用途 |
+|---|---|
+| `/dev/video11` | RKISP main path，已经过 ISP，常用 NV12 |
+| `/dev/video12` | RKISP self path，尺寸/裁剪依 ISP 配置 |
+| `/dev/video0..9` | RKCIF 直出，常见为 Bayer RAW10/RAW12 |
 
-```text
-./vi_mipi [device] [width] [height] [frames] [output_dir] [fps]
-```
+不要看到 `/dev/video0` 就直接当作 NV12；最终格式以 `--list-formats-ext` 和驱动 `S_FMT` 返回值为准。
 
-| 参数 | 默认值 | 含义 |
-| --- | --- | --- |
-| `device` | `/dev/video11` | V4L2 视频节点；MIPI ISP 输出优先使用 `/dev/video11` 或 `/dev/video12` |
-| `width` | `3840` | 请求宽度；驱动可能返回实际尺寸，实际值写入 `info.txt` |
-| `height` | `2160` | 请求高度 |
-| `frames` | `1` | 保存帧数 |
-| `output_dir` | `frames_vi` | 输出目录 |
-| `fps` | `30` | 请求帧率；驱动不支持时以驱动实际值为准 |
-
-程序固定请求 `MEDIA_FORMAT_NV12` 和 `MEDIA_VIDEO_COMPRESS_NONE`。VI 的 DMA-BUF Pool 使用 `MEDIA_POOL_ALLOC_MODE_NATIVE`，因为 RK3588 V4L2 camera 驱动要求 CMA/连续内存。
-
-## 编译和运行
-
-在发布包根目录执行：
+## 2. 编译、采集和查看
 
 ```sh
 cmake -S examples/vi_mipi -B build/vi_mipi
@@ -49,37 +31,52 @@ cmake --build build/vi_mipi -j2
 LD_LIBRARY_PATH=plugins:lib ./build/vi_mipi/vi_mipi
 ```
 
-例如采集 ISP 的 1280x720 画面 10 帧：
+命令行格式：
+
+```text
+./vi_mipi [device] [width] [height] [frames] [output_dir] [fps]
+```
+
+默认值是 `/dev/video11 3840 2160 1 frames_vi 30`。例如采 10 帧：
 
 ```sh
 LD_LIBRARY_PATH=plugins:lib ./build/vi_mipi/vi_mipi \
   /dev/video11 3840 2160 10 frames_vi 30
-```
-
-输出：
-
-- `frames_vi/frame_000.nv12` …：驱动实际返回的 NV12 payload；
-- `frames_vi/info.txt`：实际 `visible/storage/pitch/offset/len/timestamp/seq` 等 metadata。
-
-NV12 文件可以用 ffplay 检查（尺寸按 `info.txt` 中实际值填写）：
-
-```sh
+cat frames_vi/info.txt
 ffplay -f rawvideo -pixel_format nv12 -video_size 3840x2160 frames_vi/frame_000.nv12
 ```
 
-## 代码流程
+如果驱动协商出的实际尺寸与请求不同，以 `info.txt` 的 `visible/storage/pitch/offset/len` 为准。`frame_000.nv12` 等文件是原始 payload；`info.txt` 还记录时间戳、序号、DRM fourcc 和 modifier。
 
-1. `MEDIA_SYS_Init()` 初始化核心并通过直接链接的 `libmedia_vi.so` 注册 VI 插件。
-2. `MEDIA_VIDEO_BuildLinearLayout()` 计算 NV12 Pool 的 canonical 容量。
-3. `MEDIA_POOL_CreateWithMode(..., MEDIA_POOL_ALLOC_MODE_NATIVE)` 创建 camera 可导入的 CMA Pool。
-4. `MEDIA_VI_SetAttr()` 设置 V4L2 节点、尺寸、帧率和格式。
-5. `MEDIA_VI_Enable()` 完成 `S_FMT`、DMABUF 入队和 `STREAMON`。
-6. `MEDIA_VI_GetFrame()` 取帧，读取 metadata，CPU 读同步后写文件。
-7. `MEDIA_VI_ReleaseFrame()` 归还 buffer，最后 Disable、Destroy 和销毁 Pool。
+## 3. 每个参数为什么存在
 
-## 常见问题
+- `device`：V4L2 节点路径。换相机或 ISP path 时修改。
+- `width/height`：向驱动请求的可见尺寸；驱动可能选择最接近的支持 mode。
+- `frames`：要保存多少帧。每帧都要及时 Release，避免卡住驱动。
+- `output_dir`：保存帧和 `info.txt` 的目录，会自动创建。
+- `fps`：请求帧率；传感器不支持时驱动会回退到实际值。
 
-- `MEDIA_VI_SetAttr` 打开失败：检查设备节点、权限和 MIPI/ISP pipeline 是否已启用。
-- `MEDIA_VI_Enable` 返回错误：检查请求的尺寸/格式是否在 `--list-formats-ext` 中，Pool 是否使用 `MEDIA_POOL_ALLOC_MODE_NATIVE`，以及 Pool 容量是否足够。
-- 采集超时：通常表示传感器没有出流、MIPI lane/时钟配置不匹配，或 ISP 尚未配置；先用 `v4l2-ctl` 和 `media-ctl` 检查链路。
-- `/dev/video0` 的 RAW10 不能直接用本示例的 NV12 请求。若要抓 Bayer 原始帧，需要使用驱动支持的 RAW 格式并扩展示例的 `MEDIA_FORMAT`、layout 和保存逻辑。
+程序固定请求 `MEDIA_FORMAT_NV12`、`MEDIA_VIDEO_COMPRESS_NONE`。NV12 是线性 Y+UV 两 plane，适合直接给 ffplay、RGA、VPSS 或 VENC。
+
+## 4. Pool、零拷贝和生命周期
+
+VI 使用 V4L2 `V4L2_MEMORY_DMABUF`：Enable 时从应用创建的 Pool 取 `buf_cnt` 个 DMA-BUF 入队，驱动填满后返回给 `GetFrame`。因此：
+
+1. 先 `MEDIA_VIDEO_BuildLinearLayout` 计算大小。
+2. 用 `MEDIA_POOL_CreateWithMode(..., MEDIA_POOL_ALLOC_MODE_NATIVE)` 创建 CMA/连续内存 Pool；本例 6 个槽，入队 4 个。
+3. `MEDIA_VI_SetAttr` 设置 device、format、fps、pool_id。
+4. `MEDIA_VI_Enable` 完成 S_FMT、入队和 STREAMON。
+5. 循环 `MEDIA_VI_GetFrame`，CPU 读同步、保存、`MEDIA_VI_ReleaseFrame`。
+6. 退出时 Disable、Destroy、Pool_Destroy。
+
+Pool 槽数太少会导致驱动无法维持流水线；槽大小太小会在 Enable 时失败。不要在 Send/Get 期间销毁 Pool。
+
+## 5. 常见问题
+
+- `SetAttr` 打不开：设备路径错误、权限不足或节点被其他程序占用。
+- `Enable` 失败：请求的宽高/NV12 不在该节点支持列表，或 Pool 不是 NATIVE、容量不足。
+- `GetFrame timeout`：传感器没有出流、MIPI lane/时钟错误、ISP pipeline 未配置；先用 v4l2-ctl 验证。
+- RAW 节点不能采 NV12：RAW10/RAW12 需要专门的 unpack + demosaic 流程，不能套用本示例。
+- 画面花屏：按 metadata 的 pitch/offset 保存和查看，不能把 stride 当作 width。
+
+详见 [`docs/plugins/vi.md`](../../docs/plugins/vi.md)、[`include/media_vi.h`](../../include/media_vi.h)。
