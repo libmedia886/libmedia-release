@@ -96,7 +96,10 @@ static int tutorial_run_pipeline(const char *type, const char *output_path,
     tpg.format = input_format;
     tpg.fps = 30;
     tpg.pool_id = input_pool;
-    tpg.pattern = MEDIA_TPG_PATTERN_COLOR_BARS;
+    /* A moving source makes the temporal tutorial's history/threshold visible. */
+    tpg.pattern = strcmp(type, "TNR_CL") == 0
+                      ? MEDIA_TPG_PATTERN_MOVING_BOX
+                      : MEDIA_TPG_PATTERN_COLOR_BARS;
     tpg.block_size = 32;
     tpg.fg_color = 0xff8040;
     tpg.bg_color = 0x102040;
