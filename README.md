@@ -18,6 +18,7 @@ One 1920×1080 NV12 frame in, 16 independently configured outputs out — rotati
 - `examples/minimal/`: load one signed plugin.
 - `examples/load_all/`: scan and load all signed plugins in the release directory.
 - `examples/vpss_16out/`: one input, 16 independently configured VPSS outputs (the demo above).
+- `examples/vi_mipi/`: capture NV12 frames from a MIPI camera through RKISP, with a tutorial README and runnable program.
 
 ### Modules
 
@@ -77,3 +78,15 @@ LD_LIBRARY_PATH=plugins:lib ./build/vpss_16out/vpss_16out frames 1 0
 It writes `frames/frame_000.rgb` (raw RGB24, 1920×1080) plus `frames/info.txt` with the canvas size. The default source is the built-in test pattern; pass `img:<file>` to feed your own raw RGB24 1920×1080 frame instead.
 
 Every output port runs an independent transform — rotation, mirroring and aspect-preserving letterbox — on one shared input frame. Frames are pulled with `MEDIA_SYS_GetFrame`, so the example never touches DRM and runs even while a desktop owns the display.
+
+## Build the MIPI camera example
+
+Each subdirectory under `examples/` is a runnable tutorial with its own README. The MIPI camera VI tutorial can be built and run with:
+
+```sh
+cmake -S examples/vi_mipi -B build/vi_mipi
+cmake --build build/vi_mipi
+LD_LIBRARY_PATH=plugins:lib ./build/vi_mipi/vi_mipi
+```
+
+The default captures 3840×2160 NV12 from RKISP `/dev/video11`. Device, size, frame count, output directory and FPS are documented in `examples/vi_mipi/README.md`. It writes raw `.nv12` frames plus the actual layout in `info.txt`.

@@ -18,6 +18,7 @@
 - `examples/minimal/`：加载单个已签名插件的示例。
 - `examples/load_all/`：扫描并加载发布目录内全部已签名插件的示例。
 - `examples/vpss_16out/`：一路输入、16 路独立配置输出（即上面那张图）。
+- `examples/vi_mipi/`：MIPI camera 经 RKISP 采集 NV12 帧的教程（含参数说明与可直接运行的程序）。
 
 ### 模块一览
 
@@ -77,3 +78,16 @@ LD_LIBRARY_PATH=plugins:lib ./build/vpss_16out/vpss_16out frames 1 0
 输出 `frames/frame_000.rgb`（原始 RGB24，1920×1080）和 `frames/info.txt`（画布尺寸）。默认源是内置测试图案；传 `img:<文件>` 可以喂自己的 1920×1080 原始 RGB24 帧。
 
 16 个输出端口共用一路输入帧，各自独立做旋转、镜像和保宽高比留边。取帧走 `MEDIA_SYS_GetFrame`，全程不碰 DRM，桌面上也能跑。
+
+## 编译 MIPI camera 示例
+
+每个 `examples/` 子目录都是一个带 README 的可运行教程。MIPI camera 的 VI 采集教程：
+
+```sh
+cmake -S examples/vi_mipi -B build/vi_mipi
+cmake --build build/vi_mipi
+LD_LIBRARY_PATH=plugins:lib ./build/vi_mipi/vi_mipi
+```
+
+默认从 RKISP 的 `/dev/video11` 采集 3840×2160 NV12；设备、尺寸、帧数、输出目录和帧率都可以按
+`examples/vi_mipi/README.md` 的参数表调整。输出是原始 `.nv12` 帧与实际 layout 的 `info.txt`。
