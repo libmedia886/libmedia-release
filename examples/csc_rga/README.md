@@ -1,41 +1,37 @@
 # csc_rga 模块教程
 
-这个目录用于学习和检查 `CSC_RGA` 模块：RGA 色彩空间与像素格式转换。
+这个例子不是只检查插件文件，而是运行一条完整的一帧管线：`TPG -> CSC_RGA -> GetFrame`。程序创建真实的 DMA-BUF 输入/输出 Pool，处理成功后把输出 raw buffer 保存到文件。
 
-## 模块参数
+## 本例做什么
 
-| 项目 | 值 |
-| --- | --- |
-| 插件 | `plugins/libmedia_csc_rga.so` |
-| 签名 | `plugins/libmedia_csc_rga.so.sig` |
-| 公共头 | [`include/media_csc_rga.h`](../../include/media_csc_rga.h) |
-| type | `CSC_RGA` |
-| 完整参数与限制 | [`docs/plugins/csc_rga.md`](../../docs/plugins/csc_rga.md) |
+- 输入：TPG 生成的 640x360 RGB888 彩条。
+- 模块：`CSC_RGA`，参数通过命令行改变 `csc_mode`。
+- 输出：`csc_rga.rgb`（无文件头；NV12 按 Y 平面后接 UV 平面，RGB 按 packed 字节保存）。
 
-属性结构体、输入输出端口、格式、尺寸、Pool 要求和运行时参数，以公共头文件和模块文档为准。滤镜类模块需要上游帧、输出 Pool 以及与硬件格式匹配的配置，不能用一个空配置伪造通用帧；这个教程程序因此专门验证模块发布物本身。
+第二个参数 csc_mode（默认 1 BT601_LIMIT）。可选 0 DEFAULT、1 BT601_LIMIT、2 BT601_FULL、3 BT709_LIMIT、4 BT709_FULL；输出固定 RGB888。
 
 ## 编译和运行
-
-在发布包根目录执行：
 
 ```sh
 cmake -S examples/csc_rga -B build/csc_rga
 cmake --build build/csc_rga -j2
-(cd build/csc_rga && ./csc_rga_tutorial)
+LD_LIBRARY_PATH=lib:plugins ./build/csc_rga/csc_rga_tutorial
 ```
 
-也可以指定插件的绝对路径：
+也可以指定输出文件：
 
 ```sh
-./build/csc_rga/csc_rga_tutorial "$PWD/plugins/libmedia_csc_rga.so"
+./build/csc_rga/csc_rga_tutorial result.rgb [参数]
 ```
 
-程序会初始化 `libmedia.so`，调用 `MEDIA_PLUGIN_Load()` 验证相邻 `.sig`，然后打印插件版本、路径、注册 class 数和 type。输出 `signed plugin smoke test passed` 表示签名、ABI、动态依赖和插件入口都通过。
+示例：
 
-## 接入实际管线
+```sh
+./build/csc_rga/csc_rga_tutorial low.rgb 1
+```
 
-1. 先按上面的命令确认发布包和签名完整。
-2. 阅读模块文档和公共头文件中的属性结构体、端口 API 与示例配置。
-3. 用 `MEDIA_VIDEO_BuildLinearLayout()` 创建正确尺寸和格式的 Pool。
-4. 通过 `MEDIA_SYS_Bind()` 连接输入输出，或使用模块头文件中的 `SendFrame/GetFrame` API。
-5. 处理结束时按模块文档顺序 Disable、Destroy、Release Pool。
+程序通过 `MEDIA_PLUGIN_Load` 验证 `.so.sig`，再调用公开的 `MEDIA_PLUGIN_CreateModule/Start`、`MEDIA_SYS_Bind`、`MEDIA_PLUGIN_GetFrame/ReleaseFrame` API。插件依赖 GLES/RGA 的设备能力，必须在目标板上运行；如果驱动不支持相应格式，启动或取帧会返回错误码。
+
+## 参数要点
+
+完整字段、端口、Pool 容量和格式限制见 [`include/media_csc_rga.h`](../../include/media_csc_rga.h) 与 [`docs/plugins/csc_rga.md`](../../docs/plugins/csc_rga.md)。本例的输入输出 Pool 分别为 20 和 21，使用 `MEDIA_POOL_ALLOC_MODE_NATIVE`，模块销毁后由程序清理。

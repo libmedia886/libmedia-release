@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(csc_rga_tutorial main.c)
 target_compile_definitions(csc_rga_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_csc_rga.so"
     MODULE_TYPES="CSC_RGA"
     PRIMARY_TYPE="CSC_RGA"

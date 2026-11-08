@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(clahe_tutorial main.c)
 target_compile_definitions(clahe_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_clahe.so"
     MODULE_TYPES="CLAHE"
     PRIMARY_TYPE="CLAHE"

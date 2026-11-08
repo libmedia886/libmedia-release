@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(tnr_tutorial main.c)
 target_compile_definitions(tnr_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_tnr.so"
     MODULE_TYPES="TNR_CL"
     PRIMARY_TYPE="TNR_CL"

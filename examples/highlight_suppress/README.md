@@ -1,41 +1,37 @@
 # highlight_suppress 模块教程
 
-这个目录用于学习和检查 `HIGHLIGHT_SUPPRESS` 模块：NV12 高光软压制。
+这个例子不是只检查插件文件，而是运行一条完整的一帧管线：`TPG -> HIGHLIGHT_SUPPRESS -> GetFrame`。程序创建真实的 DMA-BUF 输入/输出 Pool，处理成功后把输出 raw buffer 保存到文件。
 
-## 模块参数
+## 本例做什么
 
-| 项目 | 值 |
-| --- | --- |
-| 插件 | `plugins/libmedia_highlight_suppress.so` |
-| 签名 | `plugins/libmedia_highlight_suppress.so.sig` |
-| 公共头 | [`include/media_highlight_suppress.h`](../../include/media_highlight_suppress.h) |
-| type | `HIGHLIGHT_SUPPRESS` |
-| 完整参数与限制 | [`docs/plugins/highlight_suppress.md`](../../docs/plugins/highlight_suppress.md) |
+- 输入：TPG 生成的 640x360 NV12 彩条。
+- 模块：`HIGHLIGHT_SUPPRESS`，参数通过命令行改变 `strength`。
+- 输出：`highlight_suppress.nv12`（无文件头；NV12 按 Y 平面后接 UV 平面，RGB 按 packed 字节保存）。
 
-属性结构体、输入输出端口、格式、尺寸、Pool 要求和运行时参数，以公共头文件和模块文档为准。滤镜类模块需要上游帧、输出 Pool 以及与硬件格式匹配的配置，不能用一个空配置伪造通用帧；这个教程程序因此专门验证模块发布物本身。
+第二个参数 strength（默认 0.94，范围 0..1）。0 基本不压制，1 使用完整压制。程序固定高光阈值 0.58/0.86 和 knee 0.68。
 
 ## 编译和运行
-
-在发布包根目录执行：
 
 ```sh
 cmake -S examples/highlight_suppress -B build/highlight_suppress
 cmake --build build/highlight_suppress -j2
-(cd build/highlight_suppress && ./highlight_suppress_tutorial)
+LD_LIBRARY_PATH=lib:plugins ./build/highlight_suppress/highlight_suppress_tutorial
 ```
 
-也可以指定插件的绝对路径：
+也可以指定输出文件：
 
 ```sh
-./build/highlight_suppress/highlight_suppress_tutorial "$PWD/plugins/libmedia_highlight_suppress.so"
+./build/highlight_suppress/highlight_suppress_tutorial result.nv12 [参数]
 ```
 
-程序会初始化 `libmedia.so`，调用 `MEDIA_PLUGIN_Load()` 验证相邻 `.sig`，然后打印插件版本、路径、注册 class 数和 type。输出 `signed plugin smoke test passed` 表示签名、ABI、动态依赖和插件入口都通过。
+示例：
 
-## 接入实际管线
+```sh
+./build/highlight_suppress/highlight_suppress_tutorial low.nv12 1
+```
 
-1. 先按上面的命令确认发布包和签名完整。
-2. 阅读模块文档和公共头文件中的属性结构体、端口 API 与示例配置。
-3. 用 `MEDIA_VIDEO_BuildLinearLayout()` 创建正确尺寸和格式的 Pool。
-4. 通过 `MEDIA_SYS_Bind()` 连接输入输出，或使用模块头文件中的 `SendFrame/GetFrame` API。
-5. 处理结束时按模块文档顺序 Disable、Destroy、Release Pool。
+程序通过 `MEDIA_PLUGIN_Load` 验证 `.so.sig`，再调用公开的 `MEDIA_PLUGIN_CreateModule/Start`、`MEDIA_SYS_Bind`、`MEDIA_PLUGIN_GetFrame/ReleaseFrame` API。插件依赖 GLES/RGA 的设备能力，必须在目标板上运行；如果驱动不支持相应格式，启动或取帧会返回错误码。
+
+## 参数要点
+
+完整字段、端口、Pool 容量和格式限制见 [`include/media_highlight_suppress.h`](../../include/media_highlight_suppress.h) 与 [`docs/plugins/highlight_suppress.md`](../../docs/plugins/highlight_suppress.md)。本例的输入输出 Pool 分别为 20 和 21，使用 `MEDIA_POOL_ALLOC_MODE_NATIVE`，模块销毁后由程序清理。

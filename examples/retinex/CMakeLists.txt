@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(retinex_tutorial main.c)
 target_compile_definitions(retinex_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_retinex.so"
     MODULE_TYPES="RETINEX"
     PRIMARY_TYPE="RETINEX"

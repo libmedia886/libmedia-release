@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(conv_tutorial main.c)
 target_compile_definitions(conv_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_conv.so"
     MODULE_TYPES="CONV_CL"
     PRIMARY_TYPE="CONV_CL"

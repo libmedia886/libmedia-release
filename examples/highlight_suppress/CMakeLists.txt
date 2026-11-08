@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(highlight_suppress_tutorial main.c)
 target_compile_definitions(highlight_suppress_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_highlight_suppress.so"
     MODULE_TYPES="HIGHLIGHT_SUPPRESS"
     PRIMARY_TYPE="HIGHLIGHT_SUPPRESS"

@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(wavelet_nr_tutorial main.c)
 target_compile_definitions(wavelet_nr_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_wavelet_nr.so"
     MODULE_TYPES="WAVELET_NR_CL"
     PRIMARY_TYPE="WAVELET_NR_CL"

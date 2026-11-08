@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(dcp_fast_dehaze_tutorial main.c)
 target_compile_definitions(dcp_fast_dehaze_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_dcp_fast_dehaze.so"
     MODULE_TYPES="DCP_FAST_DEHAZE"
     PRIMARY_TYPE="DCP_FAST_DEHAZE"

@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(cap_dehaze_tutorial main.c)
 target_compile_definitions(cap_dehaze_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_cap_dehaze.so"
     MODULE_TYPES="CAP_DEHAZE"
     PRIMARY_TYPE="CAP_DEHAZE"

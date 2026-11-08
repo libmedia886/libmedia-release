@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(resize_rga_tutorial main.c)
 target_compile_definitions(resize_rga_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_resize_rga.so"
     MODULE_TYPES="RESIZE_RGA"
     PRIMARY_TYPE="RESIZE_RGA"

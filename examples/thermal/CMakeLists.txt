@@ -16,6 +16,7 @@ set_target_properties(media PROPERTIES
 
 add_executable(thermal_tutorial main.c)
 target_compile_definitions(thermal_tutorial PRIVATE
+    TUTORIAL_PLUGIN_DIR="${LIBMEDIA_ROOT}/plugins"
     PLUGIN_BASENAME="libmedia_thermal.so"
     MODULE_TYPES="THERMAL"
     PRIMARY_TYPE="THERMAL"
