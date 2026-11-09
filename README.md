@@ -11,6 +11,7 @@ One 1920×1080 NV12 frame in, 16 independently configured outputs out — rotati
 ## Contents
 
 - `lib/libmedia.so`: core library with the embedded Ed25519 public key.
+- `lib/libmedia.so.sig`: detached signature of the core library itself.
 - `plugins/*.so`: external modules.
 - `plugins/*.so.sig`: detached signatures matched to each plugin byte-for-byte.
 - `include/`: public application and plugin headers.
@@ -35,13 +36,24 @@ Free for personal, research and non-profit use. Commercial use — including pro
 
 ## Signature verification
 
-With an explicit `MEDIA_PLUGIN_Load()` call, the core verifies the adjacent `.sig` file before mapping the plugin. When an application links a plugin directly and calls its module API, the dynamic linker has already mapped it; `MEDIA_PLUGIN_LoadSelf()` then verifies its signature before registering its module. A plugin is rejected for loading or registration when:
+Two separate checks run, and both must pass.
+
+**The core library checks itself.** `MEDIA_SYS_Init()` verifies the mapped `libmedia.so` against `lib/libmedia.so.sig` before it does anything else. The path comes from `/proc/self/maps`, not from `dladdr()`, so a renamed or symlinked copy still resolves to the bytes actually mapped — and the verified file's device and inode must match the mapping, so signing one file and loading another does not work. If the check fails, `MEDIA_SYS_Init()` returns `-1` and prints the reason:
+
+- `lib/libmedia.so.sig` is missing;
+- `libmedia.so` has been modified in any byte;
+- the signature was produced with a different key;
+- the image is not file-backed, or was unlinked after being mapped.
+
+This matters because the plugin checks live inside `libmedia.so` itself: without it, replacing the core is enough to skip them entirely.
+
+**Every plugin is checked before it is registered.** With an explicit `MEDIA_PLUGIN_Load()` call, the core verifies the adjacent `.sig` file before mapping the plugin. When an application links a plugin directly and calls its module API, the dynamic linker has already mapped it; `MEDIA_PLUGIN_LoadSelf()` then verifies its signature before registering its module. A plugin is rejected for loading or registration when:
 
 - the `.sig` file is missing;
 - the plugin has been modified in any byte;
 - the signature was produced with a different key.
 
-The `.sig` files are produced with the release key and must be shipped alongside the plugins. Do not modify or remove them.
+All `.sig` files are produced with the release key and must be shipped alongside what they sign. Do not modify or remove them. `lib/libmedia.so` and `lib/libmedia.so.sig` must stay in the same directory — the check looks for the signature next to the library's real path.
 
 ## Build the minimal example
 
