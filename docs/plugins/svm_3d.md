@@ -46,7 +46,6 @@ MEDIA_SVM3D_Start(0);
 构建本模块的示例（在发布包根目录执行）：
 
 ```sh
-export LD_LIBRARY_PATH="$PWD/plugins:$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 cmake -S examples/svm_3d -B build/svm_3d
 cmake --build build/svm_3d -j2
 ```
@@ -55,9 +54,12 @@ cmake --build build/svm_3d -j2
 所以这里不再给出"单独编译本插件"的命令——`cmake -S .` 在包根目录没有可读的
 `CMakeLists.txt`，照抄只会失败。要自己编插件请取插件源码仓库。
 
-本模块**必须有标定资产**才能创建成功，运行命令要带 asset manifest（第 3 个参数），
-因此必须同时写明插件路径（第 2 个参数）；具体命令和失败时的输出见
-`examples/svm_3d/README.md`。
+**这一页只给到构建为止**，不在这里写运行命令，因为本模块**必须有标定资产**
+才能创建成功：`svm_3d_tutorial <输出文件> [插件路径] [asset manifest]`，
+manifest 在第 3 位，想传它就必须同时把插件路径写上。没有资产时程序会明确失败并打印
+`SVM3D create failed: -1006 (asset_path=(null); a calibrated mesh asset is required)`。
+完整的运行命令（含 `LD_LIBRARY_PATH` 的设法和 ffplay 的 `-pixel_format abgr`）
+见 `examples/svm_3d/README.md`。
 
 ## 在发布包中使用
 
