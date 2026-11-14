@@ -130,6 +130,7 @@ MEDIA_FLUO_VISIBLE_FUSION_CL_DestroyGrp(0);
 自动取流时与其它模块一样用 Bind 连接：
 
 ```c
+#include "media_fluo_visible_fusion.h"
 MEDIA_SYS_Bind("TPG", 0, "output0", MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "input0");
 MEDIA_SYS_Bind("TPG", 1, "output0", MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "input1");
 MEDIA_SYS_Bind(MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "output0", "VO", 0, "input0");

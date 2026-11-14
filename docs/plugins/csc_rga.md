@@ -59,6 +59,7 @@ MEDIA_SYS_Bind("VPSS", 0, "output0", "CSC_RGA", 0, "input0");
 API。只允许在 `CreateGrp` 之后、`Start` 之前调用：
 
 ```c
+#include "media_csc_rga.h"
 int mode = CSC_RGA_CSC_BT709_LIMIT;
 MEDIA_PLUGIN_SetParam("CSC_RGA", 0, "csc_mode", &mode, sizeof(mode));
 ```
