@@ -15,17 +15,17 @@
 
 ```c
 MEDIA_EIS_ATTR attr = {
-    .width = 1920, .height = 1080, .format = MEDIA_FORMAT_NV12
-    .input_depth = 4, .output_pool_id = 12
-    .input_stride = 1920, .output_stride = 1920
-}
-MEDIA_EIS_CreateGrp(0, &attr)
-MEDIA_SYS_Bind("VI", 0, "output0", "EIS", 0, "input0")
-MEDIA_EIS_Start(0)
+    .width = 1920, .height = 1080, .format = MEDIA_FORMAT_NV12,
+    .input_depth = 4, .output_pool_id = 12,
+    .input_stride = 1920, .output_stride = 1920,
+};
+MEDIA_EIS_CreateGrp(0, &attr);
+MEDIA_SYS_Bind("VI", 0, "output0", "EIS", 0, "input0");
+MEDIA_EIS_Start(0);
 /* 从 EIS output0 取帧，使用 MEDIA_EIS_ReleaseFrame 归还。 */
-MEDIA_EIS_Stop(0)
-MEDIA_SYS_UnBind("VI", 0, "output0", "EIS", 0, "input0")
-MEDIA_EIS_DestroyGrp(0)
+MEDIA_EIS_Stop(0);
+MEDIA_SYS_UnBind("VI", 0, "output0", "EIS", 0, "input0");
+MEDIA_EIS_DestroyGrp(0);
 ```
 
 独立构建：

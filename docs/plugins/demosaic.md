@@ -26,21 +26,21 @@ BGGR、GBRG、GRBG、RGGB 四种 Bayer 排列，并透传帧时间戳和序号�
 
 ```c
 MEDIA_DEMOSAIC_ATTR attr = {
-    .width = 1920
-    .height = 1080
-    .input_depth = 4
-    .output_pool_id = 2
-    .input_stride = 0
-    .output_stride = 0
-    .bayer_pattern = MEDIA_BAYER_PATTERN_RGGB
-}
-MEDIA_DEMOSAIC_Create(0, &attr)
-MEDIA_DEMOSAIC_Start(0)
+    .width = 1920,
+    .height = 1080,
+    .input_depth = 4,
+    .output_pool_id = 2,
+    .input_stride = 0,
+    .output_stride = 0,
+    .bayer_pattern = MEDIA_BAYER_PATTERN_RGGB,
+};
+MEDIA_DEMOSAIC_Create(0, &attr);
+MEDIA_DEMOSAIC_Start(0);
 /* 通过 MEDIA_PLUGIN_SendFrame("DEMOSAIC", 0, 0, raw, timeout) 送入 RAW16。 */
-MEDIA_DEMOSAIC_GetFrame(0, &out, 2000)
-MEDIA_DEMOSAIC_ReleaseFrame(0, out)
-MEDIA_DEMOSAIC_Stop(0)
-MEDIA_DEMOSAIC_Destroy(0)
+MEDIA_DEMOSAIC_GetFrame(0, &out, 2000);
+MEDIA_DEMOSAIC_ReleaseFrame(0, out);
+MEDIA_DEMOSAIC_Stop(0);
+MEDIA_DEMOSAIC_Destroy(0);
 ```
 
 插件只依赖 SDK 的 `media_api.h`、`media_plugin.h` 和 libc。CMake 会用

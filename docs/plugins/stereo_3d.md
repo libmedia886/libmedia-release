@@ -91,29 +91,29 @@ GLES 双目合成：把两路 NV12 图像合成一路 NV12，支持"左右并排
 #include "media_api.h"
 #include "media_stereo_3d.h"
 
-MEDIA_STEREO_3D_ATTR attr
-memset(&attr, 0, sizeof(attr))
-attr.width = 1920
-attr.height = 1080
-attr.format = MEDIA_FORMAT_NV12
+MEDIA_STEREO_3D_ATTR attr;
+memset(&attr, 0, sizeof(attr));
+attr.width = 1920;
+attr.height = 1080;
+attr.format = MEDIA_FORMAT_NV12;
 attr.output_pool_id = POOL_OUT;              /* 事先建好的输出 Pool */
-attr.mode = MEDIA_STEREO_3D_MODE_SIDE_BY_SIDE
+attr.mode = MEDIA_STEREO_3D_MODE_SIDE_BY_SIDE;
 attr.rotate_input = 1;                       /* 旋转 input1 */
-attr.rotation_degrees = 3.5f
-MEDIA_STEREO_3D_CreateGrp(0, &attr)
-MEDIA_SYS_Bind("SRC_LEFT", 0, "output0", "STEREO_3D", 0, "input0")
-MEDIA_SYS_Bind("SRC_RIGHT", 0, "output0", "STEREO_3D", 0, "input1")
+attr.rotation_degrees = 3.5f;
+MEDIA_STEREO_3D_CreateGrp(0, &attr);
+MEDIA_SYS_Bind("SRC_LEFT", 0, "output0", "STEREO_3D", 0, "input0");
+MEDIA_SYS_Bind("SRC_RIGHT", 0, "output0", "STEREO_3D", 0, "input1");
 MEDIA_STEREO_3D_Start(0);                    /* 建工作线程 + GLES 上下文 */
 
-MEDIA_BUFFER out
+MEDIA_BUFFER out;
 if (MEDIA_STEREO_3D_GetFrame(0, &out, 1000) == 0) {
     /* 用 MEDIA_BUFFER_GetMeta 取布局，或用 MEDIA_POOL_GetFd 直接送显示/编码 */
-    MEDIA_STEREO_3D_ReleaseFrame(0, out)
+    MEDIA_STEREO_3D_ReleaseFrame(0, out);
 }
 
 MEDIA_STEREO_3D_SetRotation(0, -3.5f);       /* 运行期改角度，下一帧生效 */
-MEDIA_STEREO_3D_Stop(0)
-MEDIA_STEREO_3D_DestroyGrp(0)
+MEDIA_STEREO_3D_Stop(0);
+MEDIA_STEREO_3D_DestroyGrp(0);
 ```
 
 手动送帧的场合下 `MEDIA_SYS_SendFrame("STEREO_3D", grp, "input0" | "input1", buf, timeout)`

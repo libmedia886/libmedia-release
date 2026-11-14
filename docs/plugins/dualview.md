@@ -34,18 +34,18 @@ OpenGL ES 3 fragment shader 完成缩放和写入。插件 type 名是 `DUALVIEW
 插件。例如：
 
 ```c
-MEDIA_DUALVIEW_ATTR attr = {0}
-attr.input_width = 1920
-attr.input_height = 1080
-attr.output_width = 3840
-attr.output_height = 1080
-attr.format = MEDIA_FORMAT_RGB888
-attr.output_pool_id = output_pool
-attr.mode = MEDIA_DUALVIEW_MODE_SIDE_BY_SIDE
-MEDIA_DUALVIEW_CreateGrp(0, &attr)
-MEDIA_SYS_Bind("CAM0", 0, "output0", "DUALVIEW", 0, "input0")
-MEDIA_SYS_Bind("CAM1", 0, "output0", "DUALVIEW", 0, "input1")
-MEDIA_DUALVIEW_Start(0)
+MEDIA_DUALVIEW_ATTR attr = {0};
+attr.input_width = 1920;
+attr.input_height = 1080;
+attr.output_width = 3840;
+attr.output_height = 1080;
+attr.format = MEDIA_FORMAT_RGB888;
+attr.output_pool_id = output_pool;
+attr.mode = MEDIA_DUALVIEW_MODE_SIDE_BY_SIDE;
+MEDIA_DUALVIEW_CreateGrp(0, &attr);
+MEDIA_SYS_Bind("CAM0", 0, "output0", "DUALVIEW", 0, "input0");
+MEDIA_SYS_Bind("CAM1", 0, "output0", "DUALVIEW", 0, "input1");
+MEDIA_DUALVIEW_Start(0);
 ```
 
 输出 Pool 的 slot 数应覆盖下游队列和在途帧；测试或手动取帧得到的输出必须调用

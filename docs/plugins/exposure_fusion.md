@@ -105,7 +105,7 @@ GLES 实现拆成 5 个渲染 pass：
 
 ## 使用示例
 
-```c
+```text
 #include "media_api.h"
 #include "media_exposure_fusion.h"
 

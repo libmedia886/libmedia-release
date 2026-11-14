@@ -153,7 +153,7 @@ scale = (registration_confidence - fallback_threshold) / (1 - fallback_threshold
 
 下面的片段省略了错误处理与输入填充，只展示典型生命周期：
 
-```c
+```text
 #include <stddef.h>
 #include "media_api.h"
 #include "media_mcf_fusion.h"
@@ -213,16 +213,16 @@ MEDIA_SYS_Exit
 再绑定 `output0`。旧版简化接口仍可直接使用：
 
 ```c
-MEDIA_MCF_FUSION_CL_ATTR attr = {0}
-attr.width = 1920
-attr.height = 1080
-attr.format = MEDIA_FORMAT_NV12
-attr.input_depth = 4
-attr.output_pool_id = 10
-attr.path = MEDIA_MCF_FUSION_CL_PATH_FUSION
-attr.normalize_mode = MEDIA_MCF_FUSION_CL_NORMALIZE_MEAN_STD
-MEDIA_MCF_FUSION_CL_CreateGrp(0, &attr)
-MEDIA_MCF_FUSION_CL_Start(0)
+MEDIA_MCF_FUSION_CL_ATTR attr = {0};
+attr.width = 1920;
+attr.height = 1080;
+attr.format = MEDIA_FORMAT_NV12;
+attr.input_depth = 4;
+attr.output_pool_id = 10;
+attr.path = MEDIA_MCF_FUSION_CL_PATH_FUSION;
+attr.normalize_mode = MEDIA_MCF_FUSION_CL_NORMALIZE_MEAN_STD;
+MEDIA_MCF_FUSION_CL_CreateGrp(0, &attr);
+MEDIA_MCF_FUSION_CL_Start(0);
 ```
 
 旧版接口固定使用 `LEGACY_SINGLE_SCALE`，输出格式与输入格式相同，当前只接受 NV12

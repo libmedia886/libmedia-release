@@ -102,60 +102,60 @@ API 与旧内置模块源码兼容。
 
 int setup_dehaze(int grp, int width, int height)
 {
-    MEDIA_DCP_FAST_DEHAZE_ATTR attr
-    MEDIA_VIDEO_LAYOUT layout
-    size_t size = 0
-    if (MEDIA_VIDEO_BuildLinearLayout((uint32_t)width, (uint32_t)height
+    MEDIA_DCP_FAST_DEHAZE_ATTR attr;
+    MEDIA_VIDEO_LAYOUT layout;
+    size_t size = 0;
+    if (MEDIA_VIDEO_BuildLinearLayout((uint32_t)width, (uint32_t)height,
                                       MEDIA_FORMAT_RGB888, &layout, &size) != MEDIA_STATUS_OK) {
-        return -1
+        return -1;
     }
     if (MEDIA_POOL_CreateWithMode(MY_OUT_POOL, size, 4, MEDIA_POOL_ALLOC_MODE_NATIVE) !=
         MEDIA_STATUS_OK) {
-        return -1
+        return -1;
     }
 
-    memset(&attr, 0, sizeof(attr))
-    attr.width = width
-    attr.height = height
-    attr.format = MEDIA_FORMAT_RGB888
-    attr.output_pool_id = MY_OUT_POOL
+    memset(&attr, 0, sizeof(attr));
+    attr.width = width;
+    attr.height = height;
+    attr.format = MEDIA_FORMAT_RGB888;
+    attr.output_pool_id = MY_OUT_POOL;
     /* 其余字段留 0：patch=15、omega=0.95、t0=0.4、refine_scale=0.5 */
 
     if (MEDIA_DCP_FAST_DEHAZE_CreateGrp(grp, &attr) != MEDIA_STATUS_OK) {
-        return -1
+        return -1;
     }
-    return MEDIA_DCP_FAST_DEHAZE_Start(grp)
+    return MEDIA_DCP_FAST_DEHAZE_Start(grp);
 }
 
 void run_once(int grp, MEDIA_BUFFER input)
 {
-    MEDIA_BUFFER output
+    MEDIA_BUFFER output;
     /* 成功即转移所有权；失败时 buffer 仍归调用方 */
     if (MEDIA_DCP_FAST_DEHAZE_SendFrame(grp, input, 200) != MEDIA_STATUS_OK) {
-        return
+        return;
     }
     if (MEDIA_DCP_FAST_DEHAZE_GetFrame(grp, &output, 200) == MEDIA_STATUS_OK) {
         /* 此处使用 output */
-        (void)MEDIA_DCP_FAST_DEHAZE_ReleaseFrame(grp, output)
+        (void)MEDIA_DCP_FAST_DEHAZE_ReleaseFrame(grp, output);
     }
 }
 
 /* 也可以直接 Bind：上游 -> DCP_FAST_DEHAZE_<grp> -> 下游 */
 int bind_pipeline(void)
 {
-    int ret
-    ret = MEDIA_SYS_Bind("TPG", 0, "output0", "DCP_FAST_DEHAZE", 0, "input0")
+    int ret;
+    ret = MEDIA_SYS_Bind("TPG", 0, "output0", "DCP_FAST_DEHAZE", 0, "input0");
     if (ret != MEDIA_STATUS_OK) {
-        return ret
+        return ret;
     }
-    return MEDIA_SYS_Bind("DCP_FAST_DEHAZE", 0, "output0", "VO", 0, "input0")
+    return MEDIA_SYS_Bind("DCP_FAST_DEHAZE", 0, "output0", "VO", 0, "input0");
 }
 
 void teardown_dehaze(int grp)
 {
-    (void)MEDIA_DCP_FAST_DEHAZE_Stop(grp)
-    (void)MEDIA_DCP_FAST_DEHAZE_DestroyGrp(grp)
-    (void)MEDIA_POOL_Destroy(MY_OUT_POOL)
+    (void)MEDIA_DCP_FAST_DEHAZE_Stop(grp);
+    (void)MEDIA_DCP_FAST_DEHAZE_DestroyGrp(grp);
+    (void)MEDIA_POOL_Destroy(MY_OUT_POOL);
 }
 ```
 

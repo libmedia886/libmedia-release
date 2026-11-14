@@ -24,20 +24,20 @@
 
 ```c
 MEDIA_SVM3D_ATTR attr = {
-    .input_count = 2
-    .input_format = MEDIA_FORMAT_NV12
-    .in_width = 1920
-    .in_height = 1080
-    .output_format = MEDIA_FORMAT_ABGR8888
-    .out_width = 1280
-    .out_height = 720
-    .output_pool_id = 3
-    .asset_path = "/opt/svm3d/asset.json"
-}
-MEDIA_SVM3D_CreateGrp(0, &attr)
-MEDIA_SYS_Bind("VI", 0, "output0", "SVM3D", 0, "input0")
-MEDIA_SYS_Bind("VI", 1, "output0", "SVM3D", 0, "input1")
-MEDIA_SVM3D_Start(0)
+    .input_count = 2,
+    .input_format = MEDIA_FORMAT_NV12,
+    .in_width = 1920,
+    .in_height = 1080,
+    .output_format = MEDIA_FORMAT_ABGR8888,
+    .out_width = 1280,
+    .out_height = 720,
+    .output_pool_id = 3,
+    .asset_path = "/opt/svm3d/asset.json",
+};
+MEDIA_SVM3D_CreateGrp(0, &attr);
+MEDIA_SYS_Bind("VI", 0, "output0", "SVM3D", 0, "input0");
+MEDIA_SYS_Bind("VI", 1, "output0", "SVM3D", 0, "input1");
+MEDIA_SVM3D_Start(0);
 ```
 
 输出 Pool 每个 buffer 必须至少容纳查询到的线性四通道帧大小，数量应覆盖下游队列和在途帧。插件不会修改输入 buffer；Stop/Destroy 后所有 RecvFrame 和输出 buffer 都归还。AFBC、10-bit 输出、CPU fallback、OpenCL、Vulkan 和 NPU 后端不支持。

@@ -96,17 +96,17 @@ API 兼容（函数名、参数、`MEDIA_EDOF_CL_ATTR` / `MEDIA_EDOF_CL_PERF`
 #include "media_edof.h"
 
 MEDIA_EDOF_CL_ATTR attr = {
-    .width = 640
-    .height = 360
-    .format = MEDIA_FORMAT_NV12
-    .focus_radius = 4
-    .input_depth = 4
-    .output_pool_id = POOL_OUT
-    .input_stride = 0
-    .output_stride = 0
-    .score_eps = 1e-3f
-}
-MEDIA_SYS_Init
+    .width = 640,
+    .height = 360,
+    .format = MEDIA_FORMAT_NV12,
+    .focus_radius = 4,
+    .input_depth = 4,
+    .output_pool_id = POOL_OUT,
+    .input_stride = 0,
+    .output_stride = 0,
+    .score_eps = 1e-3f,
+};
+MEDIA_SYS_Init();
 if (MEDIA_EDOF_CL_CreateGrp(0, &attr) != MEDIA_STATUS_OK) {
     /* 配置非法或 Pool 不可用 */
 }
@@ -115,20 +115,20 @@ if (MEDIA_EDOF_CL_Start(0) != MEDIA_STATUS_OK) {   /* 等价于 Enable */
 }
 
 /* 方式一：处理链绑定 */
-MEDIA_SYS_Bind("TPG", 0, "output0", "EDOF_CL", 0, "input0")
-MEDIA_SYS_Bind("TPG", 1, "output0", "EDOF_CL", 0, "input1")
+MEDIA_SYS_Bind("TPG", 0, "output0", "EDOF_CL", 0, "input0");
+MEDIA_SYS_Bind("TPG", 1, "output0", "EDOF_CL", 0, "input1");
 /* 方式二：手动送帧（buf 的所有权交给模块） */
-MEDIA_SYS_SendFrame(MEDIA_EDOF_CL_TYPE, 0, "input0", frame0, 0)
-MEDIA_SYS_SendFrame(MEDIA_EDOF_CL_TYPE, 0, "input1", frame1, 0)
-MEDIA_BUFFER out
+MEDIA_SYS_SendFrame(MEDIA_EDOF_CL_TYPE, 0, "input0", frame0, 0);
+MEDIA_SYS_SendFrame(MEDIA_EDOF_CL_TYPE, 0, "input1", frame1, 0);
+MEDIA_BUFFER out;
 if (MEDIA_EDOF_CL_GetFrame(0, &out, 1000) == MEDIA_STATUS_OK) {
     /* out.meta.video 为 NV12 640x360 */
-    MEDIA_EDOF_CL_ReleaseFrame(0, out)
+    MEDIA_EDOF_CL_ReleaseFrame(0, out);
 }
 
-MEDIA_EDOF_CL_Stop(0)
-MEDIA_EDOF_CL_DestroyGrp(0)
-MEDIA_SYS_Exit
+MEDIA_EDOF_CL_Stop(0);
+MEDIA_EDOF_CL_DestroyGrp(0);
+MEDIA_SYS_Exit();
 ```
 
 运行期参数走通用入口 `MEDIA_PLUGIN_SetParam(type, id, key, value, size)` /

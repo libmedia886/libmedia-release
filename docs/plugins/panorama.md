@@ -15,17 +15,17 @@
 
 ```c
 MEDIA_PANO_ATTR attr = {
-    .input_count = 4
-    .in_width = 1280
-    .in_height = 720
-    .out_width = 1920
-    .out_height = 1080
-    .output_pool_id = 3
-    .pto_path = "/etc/media/camera.pto"
-}
-MEDIA_PANO_CreateGrp(0, &attr)
-MEDIA_SYS_Bind("VI", 0, "output0", "PANO", 0, "input0")
-MEDIA_PANO_Start(0)
+    .input_count = 4,
+    .in_width = 1280,
+    .in_height = 720,
+    .out_width = 1920,
+    .out_height = 1080,
+    .output_pool_id = 3,
+    .pto_path = "/etc/media/camera.pto",
+};
+MEDIA_PANO_CreateGrp(0, &attr);
+MEDIA_SYS_Bind("VI", 0, "output0", "PANO", 0, "input0");
+MEDIA_PANO_Start(0);
 ```
 
 直接调用 `MEDIA_PANO_SendFrame` 或 `MEDIA_AVM_SendFrame` 时，线性 NV12 buffer 可以没有 metadata；插件会按对应输入配置补齐公开 layout。已带 metadata 的 buffer 必须与配置一致，AFBC 等压缩输入必须由上游提供真实 metadata。

@@ -16,7 +16,7 @@ DRM writeback 回写抓屏：通过 writeback connector 把某个 CRTC（也就�
 
 ## API（`media_vo_wbc.h`）
 
-```c
+```text
 int MEDIA_VO_WBC_Probe(const char *device, int *connector_id, int *crtc_id);   /* 找 writeback connector 与 active CRTC */
 int MEDIA_VO_WBC_CreateChn(int chn, const MEDIA_VO_WBC_ATTR *attr)
 int MEDIA_VO_WBC_DestroyChn(int chn)
@@ -45,32 +45,32 @@ int MEDIA_VO_WBC_ReleaseFrame(int chn, MEDIA_BUFFER buf)
 #include "media_api.h"
 #include "media_vo_wbc.h"
 
-int connector = 0, crtc = 0
+int connector = 0, crtc = 0;
 if (MEDIA_VO_WBC_Probe(NULL, &connector, &crtc) != 0) {
     /* 板上没有 writeback connector，或没有已激活的显示 CRTC */
 }
 
-MEDIA_SYS_Init
-size_t size; MEDIA_VIDEO_LAYOUT layout
-MEDIA_VIDEO_BuildLinearLayout(1920, 1080, MEDIA_FORMAT_NV12, &layout, &size)
+MEDIA_SYS_Init();
+size_t size; MEDIA_VIDEO_LAYOUT layout;
+MEDIA_VIDEO_BuildLinearLayout(1920, 1080, MEDIA_FORMAT_NV12, &layout, &size);
 MEDIA_POOL_Create(1, size, 4);                          /* 输出 Pool，count 覆盖下游深度 + 手动取帧在途数 */
 
 MEDIA_VO_WBC_ATTR attr = {
-    .target = "HDMI-A-1", .width = 1920, .height = 1080
-    .fps = 30, .format = MEDIA_FORMAT_NV12, .pool_id = 1
-}
-MEDIA_VO_WBC_CreateChn(0, &attr)
-MEDIA_VO_WBC_Start(0)
-MEDIA_BUFFER buf
+    .target = "HDMI-A-1", .width = 1920, .height = 1080,
+    .fps = 30, .format = MEDIA_FORMAT_NV12, .pool_id = 1,
+};
+MEDIA_VO_WBC_CreateChn(0, &attr);
+MEDIA_VO_WBC_Start(0);
+MEDIA_BUFFER buf;
 if (MEDIA_VO_WBC_GetFrame(0, &buf, 1000) == 0) {        /* 或 MEDIA_SYS_Bind("VO_WBC", 0, "output0", "VENC", 0, "input0") */
-    MEDIA_BUFFER_META meta
+    MEDIA_BUFFER_META meta;
     MEDIA_BUFFER_GetMeta(buf, &meta);                   /* VIDEO_FRAME：真实布局 + 单调时钟微秒时间戳 + 序号 */
     /* 读像素前后用 MEDIA_POOL_BeginCpuAccess / EndCpuAccess(DMA_BUF_SYNC_READ) */
-    MEDIA_VO_WBC_ReleaseFrame(0, buf)
+    MEDIA_VO_WBC_ReleaseFrame(0, buf);
 }
-MEDIA_VO_WBC_Stop(0)
-MEDIA_VO_WBC_DestroyChn(0)
-MEDIA_SYS_Exit
+MEDIA_VO_WBC_Stop(0);
+MEDIA_VO_WBC_DestroyChn(0);
+MEDIA_SYS_Exit();
 ```
 
 把旧 demo（`demo_vo_wbc_capture_image` / `demo_vo_wbc_dump_raw` / `demo_vo_wbc_record`）里有价值的用法归纳为：

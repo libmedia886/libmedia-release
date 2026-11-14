@@ -18,7 +18,7 @@ RK3588 DRM/KMS atomic 显示输出：把 Pipeline 里的 DMA-BUF 帧（LINEAR �
 
 输出 / 显示：
 
-```c
+```text
 int MEDIA_VO_SetAttr(int output_id, const MEDIA_VO_ATTR *attr);   /* 绑定 connector，创建 VO_<id>；已存在时改 mode */
 int MEDIA_VO_GetOutput(...);  int MEDIA_VO_GetOutputInfo(...);  int MEDIA_VO_ProbeConnectors(...)
 int MEDIA_VO_GetActualMode(...);  int MEDIA_VO_GetSinkCaps(...);  int MEDIA_VO_RegisterEventCb(...)
@@ -28,7 +28,7 @@ int MEDIA_VO_SetColorAttr(...);  int MEDIA_VO_GetColorInfo(...);       /* HDMI S
 
 通道（plane）：
 
-```c
+```text
 int MEDIA_VO_QueryChnCaps(output_id, plane_type, force_plane, caps, max_caps, &count);  /* 当前拓扑下可直接 scanout 的 format×compress */
 int MEDIA_VO_CreateChn(output_id, chn, x, y, width, height, stride, depth, plane_type, format, compress, force_plane)
 int MEDIA_VO_DestroyChn(output_id, chn)
@@ -39,7 +39,7 @@ int MEDIA_VO_GetFrame(output_id, chn, &buf, timeout_ms);  int MEDIA_VO_ReleaseFr
 
 ## 使用流程
 
-```c
+```text
 #include "media_api.h"
 #include "media_vo.h"
 

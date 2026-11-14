@@ -73,33 +73,33 @@ SetUvStrength / SetPassthrough` 调整；`MEDIA_WAVELET_NR_CL_GetLastPerf` 返�
 #include "media_api.h"
 #include "media_wavelet_nr.h"
 
-MEDIA_VIDEO_LAYOUT layout
-size_t size = 0
-MEDIA_WAVELET_NR_CL_ATTR attr = {0}
-MEDIA_WAVELET_NR_CL_PERF perf
-MEDIA_BUFFER frame
-MEDIA_VIDEO_QueryLayout(640, 360, MEDIA_FORMAT_NV12, MEDIA_VIDEO_COMPRESS_NONE, &layout, &size)
+MEDIA_VIDEO_LAYOUT layout;
+size_t size = 0;
+MEDIA_WAVELET_NR_CL_ATTR attr = {0};
+MEDIA_WAVELET_NR_CL_PERF perf;
+MEDIA_BUFFER frame;
+MEDIA_VIDEO_QueryLayout(640, 360, MEDIA_FORMAT_NV12, MEDIA_VIDEO_COMPRESS_NONE, &layout, &size);
 MEDIA_POOL_CreateWithMode(10, size, 8, MEDIA_POOL_ALLOC_MODE_NATIVE); /* 输入 */
 MEDIA_POOL_CreateWithMode(11, size, 6, MEDIA_POOL_ALLOC_MODE_NATIVE); /* 输出 */
 
-attr.width = 640
-attr.height = 360
-attr.format = MEDIA_FORMAT_NV12
-attr.output_pool_id = 11
-attr.levels = 2
-attr.threshold_y = MEDIA_WAVELET_NR_CL_DEFAULT_THRESHOLD_Y
-attr.strength = MEDIA_WAVELET_NR_CL_DEFAULT_STRENGTH
-attr.uv_enable = 1
-attr.uv_strength = 0.5f
-MEDIA_WAVELET_NR_CL_CreateGrp(0, &attr)
-MEDIA_SYS_Bind("TPG", 0, "output0", MEDIA_WAVELET_NR_CL_TYPE, 0, "input0")
+attr.width = 640;
+attr.height = 360;
+attr.format = MEDIA_FORMAT_NV12;
+attr.output_pool_id = 11;
+attr.levels = 2;
+attr.threshold_y = MEDIA_WAVELET_NR_CL_DEFAULT_THRESHOLD_Y;
+attr.strength = MEDIA_WAVELET_NR_CL_DEFAULT_STRENGTH;
+attr.uv_enable = 1;
+attr.uv_strength = 0.5f;
+MEDIA_WAVELET_NR_CL_CreateGrp(0, &attr);
+MEDIA_SYS_Bind("TPG", 0, "output0", MEDIA_WAVELET_NR_CL_TYPE, 0, "input0");
 MEDIA_WAVELET_NR_CL_Enable(0);            /* 等价 Start，在插件线程建 GLES 上下文 */
-MEDIA_WAVELET_NR_CL_GetFrame(0, &frame, 1000)
+MEDIA_WAVELET_NR_CL_GetFrame(0, &frame, 1000);
 /* 使用 frame，然后归还 */
-MEDIA_WAVELET_NR_CL_ReleaseFrame(0, frame)
-MEDIA_WAVELET_NR_CL_GetLastPerf(0, &perf)
+MEDIA_WAVELET_NR_CL_ReleaseFrame(0, frame);
+MEDIA_WAVELET_NR_CL_GetLastPerf(0, &perf);
 MEDIA_WAVELET_NR_CL_Disable(0);           /* 等价 Stop，join 工作线程并销毁上下文 */
-MEDIA_WAVELET_NR_CL_DestroyGrp(0)
+MEDIA_WAVELET_NR_CL_DestroyGrp(0);
 ```
 
 也可以用 `MEDIA_WAVELET_NR_CL_SendFrame` 手动送帧，再用 `GetFrame` / `ReleaseFrame` 取回输出。

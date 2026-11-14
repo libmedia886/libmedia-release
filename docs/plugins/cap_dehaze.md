@@ -96,50 +96,50 @@ pthread、libm 与 libc。GPU 路径只使用 OpenGL ES。
 #define IMG_H 1080
 
 static int start_dehaze(int output_pool_id) {
-    MEDIA_VIDEO_LAYOUT layout
-    size_t size = 0
-    MEDIA_CAP_DEHAZE_ATTR attr = { 0 }
+    MEDIA_VIDEO_LAYOUT layout;
+    size_t size = 0;
+    MEDIA_CAP_DEHAZE_ATTR attr = { 0 };
     if (MEDIA_VIDEO_BuildLinearLayout(IMG_W, IMG_H, MEDIA_FORMAT_RGB888, &layout, &size) !=
         MEDIA_STATUS_OK) {
-        return -1
+        return -1;
     }
     if (MEDIA_POOL_CreateWithMode(output_pool_id, size, 4, MEDIA_POOL_ALLOC_MODE_NATIVE) != 0) {
-        return -1
+        return -1;
     }
 
-    attr.width = IMG_W
-    attr.height = IMG_H
-    attr.format = MEDIA_FORMAT_RGB888
-    attr.output_pool_id = output_pool_id
+    attr.width = IMG_W;
+    attr.height = IMG_H;
+    attr.format = MEDIA_FORMAT_RGB888;
+    attr.output_pool_id = output_pool_id;
     /* 其余字段为 0：radius=24、eps=1e-3、t0=0.12、refine=0.25。 */
     if (MEDIA_CAP_DEHAZE_CreateGrp(0, &attr) != MEDIA_STATUS_OK) {
-        return -1
+        return -1;
     }
-    if (MEDIA_SYS_Bind("VI", 0, "output0", MEDIA_CAP_DEHAZE_TYPE, 0
+    if (MEDIA_SYS_Bind("VI", 0, "output0", MEDIA_CAP_DEHAZE_TYPE, 0,
                        MEDIA_CAP_DEHAZE_INPUT_PORT) != MEDIA_STATUS_OK) {
-        return -1
+        return -1;
     }
-    return MEDIA_CAP_DEHAZE_Start(0)
+    return MEDIA_CAP_DEHAZE_Start(0);
 }
 
 static int get_result(void) {
-    MEDIA_BUFFER out
-    int ret
-    ret = MEDIA_SYS_GetFrame(MEDIA_CAP_DEHAZE_TYPE, 0, MEDIA_CAP_DEHAZE_OUTPUT_PORT
-                             &out, 1000)
+    MEDIA_BUFFER out;
+    int ret;
+    ret = MEDIA_SYS_GetFrame(MEDIA_CAP_DEHAZE_TYPE, 0, MEDIA_CAP_DEHAZE_OUTPUT_PORT,
+                             &out, 1000);
     if (ret != MEDIA_STATUS_OK) {
-        return ret
+        return ret;
     }
     /* 在 out 的有效期内读取或交给下游，然后归还。 */
-    return MEDIA_SYS_ReleaseFrame(MEDIA_CAP_DEHAZE_TYPE, 0
-                                  MEDIA_CAP_DEHAZE_OUTPUT_PORT, out)
+    return MEDIA_SYS_ReleaseFrame(MEDIA_CAP_DEHAZE_TYPE, 0,
+                                  MEDIA_CAP_DEHAZE_OUTPUT_PORT, out);
 }
 
 static int stop_dehaze(void) {
-    MEDIA_CAP_DEHAZE_Stop(0)
-    MEDIA_SYS_UnBind("VI", 0, "output0", MEDIA_CAP_DEHAZE_TYPE, 0
-                     MEDIA_CAP_DEHAZE_INPUT_PORT)
-    return MEDIA_CAP_DEHAZE_DestroyGrp(0)
+    MEDIA_CAP_DEHAZE_Stop(0);
+    MEDIA_SYS_UnBind("VI", 0, "output0", MEDIA_CAP_DEHAZE_TYPE, 0,
+                     MEDIA_CAP_DEHAZE_INPUT_PORT);
+    return MEDIA_CAP_DEHAZE_DestroyGrp(0);
 }
 ```
 

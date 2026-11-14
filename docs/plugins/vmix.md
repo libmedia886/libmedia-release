@@ -83,7 +83,7 @@ API：`MEDIA_VMIX_SetAttr / CreateGrp`（创建，二者等价）、`DestroyGrp`
 
 ## 使用示例
 
-```c
+```text
 #include "media_api.h"
 #include "media_tpg.h"
 #include "media_vmix.h"

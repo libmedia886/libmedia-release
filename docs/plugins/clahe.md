@@ -105,34 +105,34 @@ Bind 示例：`MEDIA_SYS_Bind("TPG", 0, "output0", MEDIA_CLAHE_TYPE, grp, "input
 #include "media_api.h"
 #include "media_clahe.h"
 
-MEDIA_CLAHE_ATTR attr = { 0 }
-attr.width = 1920
-attr.height = 1080
-attr.format = MEDIA_FORMAT_NV12
+MEDIA_CLAHE_ATTR attr = { 0 };
+attr.width = 1920;
+attr.height = 1080;
+attr.format = MEDIA_FORMAT_NV12;
 attr.tile_grid_x = 8;          /* 0 则使用默认 8 */
-attr.tile_grid_y = 8
-attr.bins = 256
-attr.input_depth = 4
-attr.output_pool_id = out_pool
-attr.clip_limit = 2.0f
+attr.tile_grid_y = 8;
+attr.bins = 256;
+attr.input_depth = 4;
+attr.output_pool_id = out_pool;
+attr.clip_limit = 2.0f;
 attr.highlight_protect_start = 0.9f;   /* 0 表示关闭 */
-attr.highlight_protect_strength = 0.8f
+attr.highlight_protect_strength = 0.8f;
 if (MEDIA_CLAHE_CreateGrp(0, &attr) != MEDIA_STATUS_OK) { /* 处理错误 */ }
-MEDIA_SYS_Bind("VPSS", 0, "output0", MEDIA_CLAHE_TYPE, 0, "input0")
-MEDIA_CLAHE_Start(0)
+MEDIA_SYS_Bind("VPSS", 0, "output0", MEDIA_CLAHE_TYPE, 0, "input0");
+MEDIA_CLAHE_Start(0);
 /* 拉帧 */
-MEDIA_BUFFER frame
+MEDIA_BUFFER frame;
 if (MEDIA_CLAHE_GetFrame(0, &frame, 1000) == MEDIA_STATUS_OK) {
     /* frame.pool_id / frame.index 指向 output_pool 的某块 NV12 */
-    MEDIA_CLAHE_ReleaseFrame(0, frame)
+    MEDIA_CLAHE_ReleaseFrame(0, frame);
 }
 
 /* 运行期调参 */
-MEDIA_CLAHE_SetClipLimit(0, 3.0f)
-MEDIA_CLAHE_SetHighlightProtect(0, 0.85f, 1.0f)
-MEDIA_CLAHE_SetPassthrough(0, 0)
-MEDIA_CLAHE_Stop(0)
-MEDIA_CLAHE_DestroyGrp(0)
+MEDIA_CLAHE_SetClipLimit(0, 3.0f);
+MEDIA_CLAHE_SetHighlightProtect(0, 0.85f, 1.0f);
+MEDIA_CLAHE_SetPassthrough(0, 0);
+MEDIA_CLAHE_Stop(0);
+MEDIA_CLAHE_DestroyGrp(0);
 ```
 
 手动送帧（不经 Bind）用 `MEDIA_PLUGIN_SendFrame(MEDIA_CLAHE_TYPE, grp, 0, buf, timeout_ms)`

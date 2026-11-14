@@ -27,29 +27,29 @@ VDEC 自己不解码到内部 buffer，而是解码到应用提供的 Pool 槽�
 3. 把 `pool_id` 填进 `MEDIA_VDEC_ATTR.pool_id` 再 `MEDIA_VDEC_CreateChn`。
 
 ```c
-MEDIA_VDEC_ATTR attr = {0}
-MEDIA_VDEC_OUTPUT_POOL_REQUIREMENTS req
-attr.width = 320
-attr.height = 240
-attr.stride = 320
-attr.buf_cnt = 8
-attr.video_type = MEDIA_VIDEO_H264
+MEDIA_VDEC_ATTR attr = {0};
+MEDIA_VDEC_OUTPUT_POOL_REQUIREMENTS req;
+attr.width = 320;
+attr.height = 240;
+attr.stride = 320;
+attr.buf_cnt = 8;
+attr.video_type = MEDIA_VIDEO_H264;
 attr.pool_id = pool_id;            /* 应用创建的输出 Pool */
 attr.has_input_port = 0;           /* 手动 SendPacket 模式 */
-attr.input_depth = 0
+attr.input_depth = 0;
 attr.output_format = 0;            /* 0 = NV12 */
-attr.output_compress = MEDIA_VIDEO_COMPRESS_NONE
-MEDIA_VDEC_QueryOutputPoolRequirements(&attr, &req)
+attr.output_compress = MEDIA_VIDEO_COMPRESS_NONE;
+MEDIA_VDEC_QueryOutputPoolRequirements(&attr, &req);
 /* 用 req.slot_size / req.slot_count 创建 Pool，id 填回 attr.pool_id */
 
-MEDIA_VDEC_CreateChn(0, &attr)
-MEDIA_VDEC_Start(0)
-MEDIA_VDEC_SendPacket(0, data, size, pts)
-MEDIA_VDEC_GetFrame(0, &frame, 1000)
+MEDIA_VDEC_CreateChn(0, &attr);
+MEDIA_VDEC_Start(0);
+MEDIA_VDEC_SendPacket(0, data, size, pts);
+MEDIA_VDEC_GetFrame(0, &frame, 1000);
 /* frame.buffer 的 meta 里有真实 layout 与像素格式 */
-MEDIA_VDEC_ReleaseFrame(0, frame)
-MEDIA_VDEC_Stop(0)
-MEDIA_VDEC_DestroyChn(0)
+MEDIA_VDEC_ReleaseFrame(0, frame);
+MEDIA_VDEC_Stop(0);
+MEDIA_VDEC_DestroyChn(0);
 ```
 
 `MEDIA_VDEC_FRAME` 携带 `lease_id`，`ReleaseFrame` 必须原样传回，同一 token
@@ -70,7 +70,7 @@ MEDIA_VDEC_DestroyChn(0)
 
 ### 作为插件创建
 
-```c
+```text
 MEDIA_VDEC_ATTR attr = { /* 同上，含 pool_id 与 has_input_port */ }
 MEDIA_PLUGIN_CreateModule("VDEC", 0, &attr, sizeof(attr))
 MEDIA_PLUGIN_Start("VDEC", 0)

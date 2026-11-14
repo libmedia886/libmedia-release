@@ -13,15 +13,15 @@
 示例：
 
 ```c
-MEDIA_THERMAL_ATTR a = {0}
-a.width = 640; a.height = 480; a.format = MEDIA_FORMAT_NV12
-a.color_mode = MEDIA_THERMAL_COLOR_RAINBOW
-a.output_format = MEDIA_FORMAT_RGBA8888; a.output_pool_id = pool
-MEDIA_THERMAL_CreateGrp(0, &a)
-MEDIA_THERMAL_Start(0)
-MEDIA_SYS_SendFrame("THERMAL", 0, "input0", input, 1000)
-MEDIA_SYS_GetFrame("THERMAL", 0, "output0", &output, 2000)
-MEDIA_SYS_ReleaseFrame("THERMAL", 0, "output0", output)
+MEDIA_THERMAL_ATTR a = {0};
+a.width = 640; a.height = 480; a.format = MEDIA_FORMAT_NV12;
+a.color_mode = MEDIA_THERMAL_COLOR_RAINBOW;
+a.output_format = MEDIA_FORMAT_RGBA8888; a.output_pool_id = pool;
+MEDIA_THERMAL_CreateGrp(0, &a);
+MEDIA_THERMAL_Start(0);
+MEDIA_SYS_SendFrame("THERMAL", 0, "input0", input, 1000);
+MEDIA_SYS_GetFrame("THERMAL", 0, "output0", &output, 2000);
+MEDIA_SYS_ReleaseFrame("THERMAL", 0, "output0", output);
 ```
 
 旧应用也可以使用同步接口：`MEDIA_THERMAL_Process(0, input, &output)` 会等待一帧

@@ -65,16 +65,16 @@ G711 取 80/160/240/320/480，AAC 固定 1024）、`device` 默认 `plughw:0,0`�
 #include "media_api.h"
 #include "media_audio.h"
 
-size_t fsz = MEDIA_AUDIO_CalcFramePoolSize(48000, 16, MEDIA_AUDIO_SOUND_MODE_STEREO, 1024)
-MEDIA_POOL_CreateWithMode(1, fsz, 8, MEDIA_POOL_ALLOC_MODE_HOST)
-MEDIA_AUDIO_IN_ATTR in = {.sample_rate = 48000, .snd_mode = MEDIA_AUDIO_SOUND_MODE_STEREO
-                          .point_num_per_frame = 1024, .output_pool_id = 1}
-MEDIA_AUDIO_IN_CreateChn(0, 0, &in)
-MEDIA_AUDIO_IN_Start(0, 0)
-MEDIA_AUDIO_FRAME f
+size_t fsz = MEDIA_AUDIO_CalcFramePoolSize(48000, 16, MEDIA_AUDIO_SOUND_MODE_STEREO, 1024);
+MEDIA_POOL_CreateWithMode(1, fsz, 8, MEDIA_POOL_ALLOC_MODE_HOST);
+MEDIA_AUDIO_IN_ATTR in = {.sample_rate = 48000, .snd_mode = MEDIA_AUDIO_SOUND_MODE_STEREO,
+                          .point_num_per_frame = 1024, .output_pool_id = 1};
+MEDIA_AUDIO_IN_CreateChn(0, 0, &in);
+MEDIA_AUDIO_IN_Start(0, 0);
+MEDIA_AUDIO_FRAME f;
 if (MEDIA_AUDIO_IN_GetFrame(0, 0, &f, 1000) == 0) {
     /* f.virt_addr[0/1] 是左/右声道 planar 数据 */
-    MEDIA_AUDIO_IN_ReleaseFrame(0, 0, &f)
+    MEDIA_AUDIO_IN_ReleaseFrame(0, 0, &f);
 }
 ```
 

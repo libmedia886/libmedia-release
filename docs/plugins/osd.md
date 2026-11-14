@@ -23,18 +23,18 @@
 #include "media_osd.h"
 
 MEDIA_OSD_ATTR attr = {
-    .input_width = 1920
-    .input_height = 1080
-    .format = MEDIA_FORMAT_NV12
-    .input_depth = 4
-    .output_pool_id = out_pool
-    .max_regions = 8
-}
-MEDIA_OSD_CreateGrp(0, &attr)
+    .input_width = 1920,
+    .input_height = 1080,
+    .format = MEDIA_FORMAT_NV12,
+    .input_depth = 4,
+    .output_pool_id = out_pool,
+    .max_regions = 8,
+};
+MEDIA_OSD_CreateGrp(0, &attr);
 MEDIA_OSD_UpdateRegion(0, 0, &region_attr);      /* enabled / x / y / w / h / global_alpha */
 MEDIA_OSD_SetRegionRect(0, 0, &rect);            /* RECT 内容 */
 MEDIA_OSD_SetRegionMask(0, 0, &mask);            /* A8_MASK 内容，可运行期反复更新 */
-MEDIA_OSD_Start(0)
+MEDIA_OSD_Start(0);
 ```
 
 方式二，作为插件：`MEDIA_PLUGIN_Load("libmedia_osd.so")` 后

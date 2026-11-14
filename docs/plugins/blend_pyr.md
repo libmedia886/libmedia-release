@@ -85,7 +85,7 @@ zero `drm_modifier` 一律拒收。mask 的有效区偏移（`valid_x` / `valid_
 
 ## 使用示例
 
-```c
+```text
 #include "media_api.h"
 #include "media_blend_pyr.h"
 

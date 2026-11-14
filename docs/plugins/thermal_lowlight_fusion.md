@@ -91,7 +91,7 @@ GLES 双路 NV12 图像融合：以低照度图像为亮度基准，从热成像
 
 ## 使用示例
 
-```c
+```text
 #include "media_api.h"
 #include "media_thermal_lowlight_fusion.h"
 
@@ -125,10 +125,10 @@ MEDIA_THERMAL_LOWLIGHT_FUSION_CL_DestroyGrp(0)
 未接上游时可直接送帧：
 
 ```c
-MEDIA_THERMAL_LOWLIGHT_FUSION_CL_SendFrame(0, MEDIA_THERMAL_LOWLIGHT_FUSION_CL_INPUT_THERMAL
-                                           thermal_buf, 0)
-MEDIA_THERMAL_LOWLIGHT_FUSION_CL_SendFrame(0, MEDIA_THERMAL_LOWLIGHT_FUSION_CL_INPUT_LOWLIGHT
-                                           lowlight_buf, 0)
+MEDIA_THERMAL_LOWLIGHT_FUSION_CL_SendFrame(0, MEDIA_THERMAL_LOWLIGHT_FUSION_CL_INPUT_THERMAL,
+                                           thermal_buf, 0);
+MEDIA_THERMAL_LOWLIGHT_FUSION_CL_SendFrame(0, MEDIA_THERMAL_LOWLIGHT_FUSION_CL_INPUT_LOWLIGHT,
+                                           lowlight_buf, 0);
 ```
 
 分阶段耗时通过 `MEDIA_THERMAL_LOWLIGHT_FUSION_CL_GetLastPerf` 读取（`y_kernel_ms`、

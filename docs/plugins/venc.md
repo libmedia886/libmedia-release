@@ -23,19 +23,19 @@ NV12/YUV420 等输入做 H.264 / H.265 编码（格式表还保留 MJPEG / JPEG 
 #include "media_api.h"
 #include "media_venc.h"
 
-MEDIA_SYS_Init
-MEDIA_VENC_CreateChn(0, 320, 240, 320, 30, 4, 4
-                     out_pool_id, 4000000, 30, MEDIA_FORMAT_H264, 0)
-MEDIA_VENC_Start(0)
-MEDIA_PACKET pkt
+MEDIA_SYS_Init();
+MEDIA_VENC_CreateChn(0, 320, 240, 320, 30, 4, 4,
+                     out_pool_id, 4000000, 30, MEDIA_FORMAT_H264, 0);
+MEDIA_VENC_Start(0);
+MEDIA_PACKET pkt;
 if (MEDIA_VENC_GetPacket(0, &pkt, 1000) == 0) {
     /* pkt.data 为码流起始地址，pkt.len 为本包字节数 */
-    MEDIA_VENC_ReleasePacket(0, &pkt)
+    MEDIA_VENC_ReleasePacket(0, &pkt);
 }
 
-MEDIA_VENC_Stop(0)
-MEDIA_VENC_DestroyChn(0)
-MEDIA_SYS_Exit
+MEDIA_VENC_Stop(0);
+MEDIA_VENC_DestroyChn(0);
+MEDIA_SYS_Exit();
 ```
 
 首次调用任一 `MEDIA_VENC_*` 时，本库会自行调用 `MEDIA_PLUGIN_LoadSelf` 向
@@ -45,7 +45,7 @@ libmedia 注册 `VENC` 类，不需要应用手动 `MEDIA_PLUGIN_Load`。
 
 ### 2. 作为插件创建
 
-```c
+```text
 MEDIA_VENC_ATTR attr = { /* 见下表 */ }
 MEDIA_PLUGIN_CreateModule("VENC", 0, &attr, sizeof(attr))
 int pool_id = out_pool_id
@@ -70,8 +70,8 @@ MEDIA_PLUGIN_Start("VENC", 0)
 Bind 方向示例：
 
 ```c
-MEDIA_SYS_Bind("TPG", 0, "output0", "VENC", 0, "input0")
-MEDIA_SYS_Bind("VENC", 0, "output0", "MY_SINK", 0, "input0")
+MEDIA_SYS_Bind("TPG", 0, "output0", "VENC", 0, "input0");
+MEDIA_SYS_Bind("VENC", 0, "output0", "MY_SINK", 0, "input0");
 ```
 
 ### 4. 输出 buffer

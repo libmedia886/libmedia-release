@@ -95,48 +95,48 @@ YUV420SP_10BIT, P010, P210, Y210, Y410, Y0L2, ABGR2101010, YUV444P, BGR101010
 #define W 1920
 #define H 1080
 
-MEDIA_VIDEO_LAYOUT layout
-size_t size = 0
+MEDIA_VIDEO_LAYOUT layout;
+size_t size = 0;
 MEDIA_CONV_CL_ATTR attr = {
-    .width = W
-    .height = H
-    .format = MEDIA_FORMAT_NV12
-    .kernel_size = 5
-    .input_depth = 4
-    .output_pool_id = POOL_OUT
-    .input_stride = 0
-    .output_stride = 0
-}
-float mean25[25]
-MEDIA_SYS_Init
-MEDIA_VIDEO_QueryLayout(W, H, MEDIA_FORMAT_NV12, MEDIA_VIDEO_COMPRESS_NONE, &layout, &size)
-MEDIA_POOL_CreateWithMode(POOL_IN, size, 6, MEDIA_POOL_ALLOC_MODE_NATIVE)
-MEDIA_POOL_CreateWithMode(POOL_OUT, size, 4, MEDIA_POOL_ALLOC_MODE_NATIVE)
-MEDIA_CONV_CL_CreateGrp(0, &attr)
+    .width = W,
+    .height = H,
+    .format = MEDIA_FORMAT_NV12,
+    .kernel_size = 5,
+    .input_depth = 4,
+    .output_pool_id = POOL_OUT,
+    .input_stride = 0,
+    .output_stride = 0,
+};
+float mean25[25];
+MEDIA_SYS_Init();
+MEDIA_VIDEO_QueryLayout(W, H, MEDIA_FORMAT_NV12, MEDIA_VIDEO_COMPRESS_NONE, &layout, &size);
+MEDIA_POOL_CreateWithMode(POOL_IN, size, 6, MEDIA_POOL_ALLOC_MODE_NATIVE);
+MEDIA_POOL_CreateWithMode(POOL_OUT, size, 4, MEDIA_POOL_ALLOC_MODE_NATIVE);
+MEDIA_CONV_CL_CreateGrp(0, &attr);
 for (int i = 0; i < 25; ++i) {
     mean25[i] = 0.04f;                 /* 5x5 均值核 */
 }
-MEDIA_CONV_CL_SetTable(0, mean25, 25)
-MEDIA_CONV_CL_Start(0)
+MEDIA_CONV_CL_SetTable(0, mean25, 25);
+MEDIA_CONV_CL_Start(0);
 /* 手动送帧：从 POOL_IN 取 buffer、填像素并写好 VIDEO_FRAME metadata；成功后所有权移交队列。 */
-MEDIA_SYS_SendFrame(MEDIA_CONV_TYPE, 0, "input0", in_buf, 1000)
-MEDIA_BUFFER out
+MEDIA_SYS_SendFrame(MEDIA_CONV_TYPE, 0, "input0", in_buf, 1000);
+MEDIA_BUFFER out;
 if (MEDIA_CONV_CL_GetFrame(0, &out, 1000) == 0) {
     /* 读取 out 的 metadata / 像素，或转交下游 */
-    MEDIA_CONV_CL_ReleaseFrame(0, out)
+    MEDIA_CONV_CL_ReleaseFrame(0, out);
 }
 
-MEDIA_CONV_CL_Stop(0)
-MEDIA_CONV_CL_DestroyGrp(0)
-MEDIA_POOL_Destroy(POOL_OUT)
-MEDIA_POOL_Destroy(POOL_IN)
-MEDIA_SYS_Exit
+MEDIA_CONV_CL_Stop(0);
+MEDIA_CONV_CL_DestroyGrp(0);
+MEDIA_POOL_Destroy(POOL_OUT);
+MEDIA_POOL_Destroy(POOL_IN);
+MEDIA_SYS_Exit();
 ```
 
 流水线里也可以直接按 type 名 Bind，名字与旧模块一致：
 
 ```c
-MEDIA_SYS_Bind("CONV_CL", 0, "output0", "SOME_MODULE", 1, "input0")
+MEDIA_SYS_Bind("CONV_CL", 0, "output0", "SOME_MODULE", 1, "input0");
 ```
 
 ## 限制

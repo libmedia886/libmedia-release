@@ -14,13 +14,13 @@
 
 ```c
 MEDIA_TNR_CL_ATTR attr = {
-    .width = 1920, .height = 1080, .format = MEDIA_FORMAT_NV12
-    .input_depth = 4, .output_pool_id = 2
-    .static_alpha = 0.35f, .motion_alpha = 0.88f
-}
-MEDIA_TNR_CL_CreateGrp(0, &attr)
-MEDIA_SYS_Bind("VI", 0, "output0", "TNR_CL", 0, "input0")
-MEDIA_TNR_CL_Start(0)
+    .width = 1920, .height = 1080, .format = MEDIA_FORMAT_NV12,
+    .input_depth = 4, .output_pool_id = 2,
+    .static_alpha = 0.35f, .motion_alpha = 0.88f,
+};
+MEDIA_TNR_CL_CreateGrp(0, &attr);
+MEDIA_SYS_Bind("VI", 0, "output0", "TNR_CL", 0, "input0");
+MEDIA_TNR_CL_Start(0);
 ```
 
 ## 在发布包中使用

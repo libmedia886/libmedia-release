@@ -105,39 +105,39 @@ Yout    = clamp(yn + (soft - yn) * mask, 0, 1) * 255
 #include "media_api.h"
 #include "media_highlight_suppress.h"
 
-enum { IN_POOL = 1, OUT_POOL = 2 }
-MEDIA_VIDEO_LAYOUT layout
-size_t pool_size = 0
-MEDIA_HIGHLIGHT_SUPPRESS_ATTR attr = {0}
-MEDIA_SYS_Init
-MEDIA_VIDEO_QueryLayout(1920, 1080, MEDIA_FORMAT_NV12
-                        MEDIA_VIDEO_COMPRESS_NONE, &layout, &pool_size)
-MEDIA_POOL_CreateWithMode(IN_POOL, pool_size, 8, MEDIA_POOL_ALLOC_MODE_NATIVE)
-MEDIA_POOL_CreateWithMode(OUT_POOL, pool_size, 4, MEDIA_POOL_ALLOC_MODE_NATIVE)
-attr.width = 1920
-attr.height = 1080
-attr.format = MEDIA_FORMAT_NV12
-attr.output_pool_id = OUT_POOL
-attr.input_stride = (int)layout.pitch_bytes[0]
-attr.output_stride = (int)layout.pitch_bytes[0]
-MEDIA_HIGHLIGHT_SUPPRESS_CreateGrp(0, &attr)
-MEDIA_SYS_Bind("VI", 0, "output0", MEDIA_HIGHLIGHT_SUPPRESS_TYPE, 0
-               MEDIA_HIGHLIGHT_SUPPRESS_INPUT_PORT)
-MEDIA_HIGHLIGHT_SUPPRESS_Start(0)
+enum { IN_POOL = 1, OUT_POOL = 2 };
+MEDIA_VIDEO_LAYOUT layout;
+size_t pool_size = 0;
+MEDIA_HIGHLIGHT_SUPPRESS_ATTR attr = {0};
+MEDIA_SYS_Init();
+MEDIA_VIDEO_QueryLayout(1920, 1080, MEDIA_FORMAT_NV12,
+                        MEDIA_VIDEO_COMPRESS_NONE, &layout, &pool_size);
+MEDIA_POOL_CreateWithMode(IN_POOL, pool_size, 8, MEDIA_POOL_ALLOC_MODE_NATIVE);
+MEDIA_POOL_CreateWithMode(OUT_POOL, pool_size, 4, MEDIA_POOL_ALLOC_MODE_NATIVE);
+attr.width = 1920;
+attr.height = 1080;
+attr.format = MEDIA_FORMAT_NV12;
+attr.output_pool_id = OUT_POOL;
+attr.input_stride = (int)layout.pitch_bytes[0];
+attr.output_stride = (int)layout.pitch_bytes[0];
+MEDIA_HIGHLIGHT_SUPPRESS_CreateGrp(0, &attr);
+MEDIA_SYS_Bind("VI", 0, "output0", MEDIA_HIGHLIGHT_SUPPRESS_TYPE, 0,
+               MEDIA_HIGHLIGHT_SUPPRESS_INPUT_PORT);
+MEDIA_HIGHLIGHT_SUPPRESS_Start(0);
 /* 下游可 Bind output0，也可手动取帧。 */
-MEDIA_BUFFER out
+MEDIA_BUFFER out;
 if (MEDIA_HIGHLIGHT_SUPPRESS_GetFrame(0, &out, 1000) == 0) {
     /* 使用 out；所有权在本调用者。 */
-    MEDIA_HIGHLIGHT_SUPPRESS_ReleaseFrame(0, out)
+    MEDIA_HIGHLIGHT_SUPPRESS_ReleaseFrame(0, out);
 }
 
-MEDIA_HIGHLIGHT_SUPPRESS_Stop(0)
-MEDIA_SYS_UnBind("VI", 0, "output0", MEDIA_HIGHLIGHT_SUPPRESS_TYPE, 0
-                 MEDIA_HIGHLIGHT_SUPPRESS_INPUT_PORT)
-MEDIA_HIGHLIGHT_SUPPRESS_DestroyGrp(0)
-MEDIA_POOL_Destroy(OUT_POOL)
-MEDIA_POOL_Destroy(IN_POOL)
-MEDIA_SYS_Exit
+MEDIA_HIGHLIGHT_SUPPRESS_Stop(0);
+MEDIA_SYS_UnBind("VI", 0, "output0", MEDIA_HIGHLIGHT_SUPPRESS_TYPE, 0,
+                 MEDIA_HIGHLIGHT_SUPPRESS_INPUT_PORT);
+MEDIA_HIGHLIGHT_SUPPRESS_DestroyGrp(0);
+MEDIA_POOL_Destroy(OUT_POOL);
+MEDIA_POOL_Destroy(IN_POOL);
+MEDIA_SYS_Exit();
 ```
 
 手动送帧时，先从输入 Pool 取 Buffer、填好像素并写 NV12 metadata，再把所有权交给

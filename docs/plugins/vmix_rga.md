@@ -18,19 +18,19 @@
 #include "media_vmix_rga.h"
 
 MEDIA_VMIX_RGA_ATTR attr = {
-    .input_count = 2
-    .output_width = 1920
-    .output_height = 1080
-    .format = MEDIA_FORMAT_NV12
-    .output_pool_id = out_pool
-    .primary_index = 0
-    .use_rga_compose = 1
-}
-attr.channels[0] = (MEDIA_VMIX_RGA_CHANNEL){ .enabled = 1, .width = 1920, .height = 1080 }
-attr.channels[1] = (MEDIA_VMIX_RGA_CHANNEL){ .enabled = 1, .x = 1280, .y = 720
-                                            .width = 640, .height = 360 }
-MEDIA_VMIX_RGA_CreateGrp(0, &attr)
-MEDIA_VMIX_RGA_Start(0)
+    .input_count = 2,
+    .output_width = 1920,
+    .output_height = 1080,
+    .format = MEDIA_FORMAT_NV12,
+    .output_pool_id = out_pool,
+    .primary_index = 0,
+    .use_rga_compose = 1,
+};
+attr.channels[0] = (MEDIA_VMIX_RGA_CHANNEL){ .enabled = 1, .width = 1920, .height = 1080 };
+attr.channels[1] = (MEDIA_VMIX_RGA_CHANNEL){ .enabled = 1, .x = 1280, .y = 720,
+                                            .width = 640, .height = 360 };
+MEDIA_VMIX_RGA_CreateGrp(0, &attr);
+MEDIA_VMIX_RGA_Start(0);
 ```
 
 也支持作为插件 `MEDIA_PLUGIN_Load("libmedia_vmix_rga.so")` 后

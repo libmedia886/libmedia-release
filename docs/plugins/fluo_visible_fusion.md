@@ -94,45 +94,45 @@ SendFrame 的 `input_id` 就是端口编号：`MEDIA_FLUO_VISIBLE_FUSION_CL_INPU
 #include "media_api.h"
 #include "media_fluo_visible_fusion.h"
 
-MEDIA_FLUO_VISIBLE_FUSION_CL_ATTR attr = {0}
-MEDIA_BUFFER out
-attr.width = 1920
-attr.height = 1080
-attr.format = MEDIA_FORMAT_NV12
-attr.input_depth = 4
+MEDIA_FLUO_VISIBLE_FUSION_CL_ATTR attr = {0};
+MEDIA_BUFFER out;
+attr.width = 1920;
+attr.height = 1080;
+attr.format = MEDIA_FORMAT_NV12;
+attr.input_depth = 4;
 attr.output_pool_id = 3;          /* 调用方已创建的输出 Pool */
 attr.input_stride = 1920;         /* 64 字节对齐 */
-attr.output_stride = 1920
-attr.method = MEDIA_FLUO_VISIBLE_FUSION_CL_METHOD_GREEN_OVERLAY
+attr.output_stride = 1920;
+attr.method = MEDIA_FLUO_VISIBLE_FUSION_CL_METHOD_GREEN_OVERLAY;
 /* 静态链接插件或 MEDIA_PLUGIN_Load 之后直接调用。 */
 if (MEDIA_FLUO_VISIBLE_FUSION_CL_CreateGrp(0, &attr) != 0) {
-    return -1
+    return -1;
 }
 if (MEDIA_FLUO_VISIBLE_FUSION_CL_Start(0) != 0) {
-    MEDIA_FLUO_VISIBLE_FUSION_CL_DestroyGrp(0)
-    return -1
+    MEDIA_FLUO_VISIBLE_FUSION_CL_DestroyGrp(0);
+    return -1;
 }
 
 /* visible / fluorescence 都是已填好的 NV12 MEDIA_BUFFER，成功即移交所有权。 */
 MEDIA_FLUO_VISIBLE_FUSION_CL_SendFrame(
-    0, MEDIA_FLUO_VISIBLE_FUSION_CL_INPUT_VISIBLE, visible, 1000)
+    0, MEDIA_FLUO_VISIBLE_FUSION_CL_INPUT_VISIBLE, visible, 1000);
 MEDIA_FLUO_VISIBLE_FUSION_CL_SendFrame(
-    0, MEDIA_FLUO_VISIBLE_FUSION_CL_INPUT_FLUORESCENCE, fluorescence, 1000)
+    0, MEDIA_FLUO_VISIBLE_FUSION_CL_INPUT_FLUORESCENCE, fluorescence, 1000);
 if (MEDIA_FLUO_VISIBLE_FUSION_CL_GetFrame(0, &out, 1000) == 0) {
     /* out 中带有效 MEDIA_BUFFER_META_VIDEO_FRAME，可直接交给下游或 CPU 访问。 */
-    MEDIA_FLUO_VISIBLE_FUSION_CL_ReleaseFrame(0, out)
+    MEDIA_FLUO_VISIBLE_FUSION_CL_ReleaseFrame(0, out);
 }
 
-MEDIA_FLUO_VISIBLE_FUSION_CL_Stop(0)
-MEDIA_FLUO_VISIBLE_FUSION_CL_DestroyGrp(0)
+MEDIA_FLUO_VISIBLE_FUSION_CL_Stop(0);
+MEDIA_FLUO_VISIBLE_FUSION_CL_DestroyGrp(0);
 ```
 
 自动取流时与其它模块一样用 Bind 连接：
 
 ```c
-MEDIA_SYS_Bind("TPG", 0, "output0", MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "input0")
-MEDIA_SYS_Bind("TPG", 1, "output0", MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "input1")
-MEDIA_SYS_Bind(MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "output0", "VO", 0, "input0")
+MEDIA_SYS_Bind("TPG", 0, "output0", MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "input0");
+MEDIA_SYS_Bind("TPG", 1, "output0", MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "input1");
+MEDIA_SYS_Bind(MEDIA_FLUO_VISIBLE_FUSION_CL_TYPE, 0, "output0", "VO", 0, "input0");
 ```
 
 也可以只用通用插件 API：`MEDIA_PLUGIN_CreateModule("FLUO_VISIBLE_FUSION_CL", grp, &attr

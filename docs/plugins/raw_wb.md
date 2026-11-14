@@ -63,7 +63,7 @@ RAW16_LE Bayer 手动白平衡。单个 GPU 渲染 pass 按 CFA 位置给 R/G/B 
 
 ## 使用示例
 
-```c
+```text
 #include "media_api.h"
 #include "media_raw_wb.h"
 

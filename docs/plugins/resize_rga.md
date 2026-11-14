@@ -21,31 +21,31 @@
 ```c
 #include "media_resize_rga.h"
 
-MEDIA_SYS_Init
+MEDIA_SYS_Init();
 MEDIA_RESIZE_RGA_ATTR attr = {
-    .src_x = 0, .src_y = 0
-    .src_width = 1920, .src_height = 1080
-    .input_width = 1920, .input_height = 1080
-    .input_format = MEDIA_FORMAT_NV12
-    .out_width = 640, .out_height = 360
-    .output_format = MEDIA_FORMAT_NV12
-    .output_pool_id = out_pool
-    .keep_aspect_ratio = 1
-}
-MEDIA_RESIZE_RGA_CreateGrp(0, &attr)
-MEDIA_RESIZE_RGA_Start(0)
-MEDIA_BUFFER out
-MEDIA_RESIZE_RGA_GetFrame(0, &out, 1000)
-MEDIA_RESIZE_RGA_ReleaseFrame(0, out)
-MEDIA_RESIZE_RGA_Stop(0)
-MEDIA_RESIZE_RGA_DestroyGrp(0)
-MEDIA_SYS_Exit
+    .src_x = 0, .src_y = 0,
+    .src_width = 1920, .src_height = 1080,
+    .input_width = 1920, .input_height = 1080,
+    .input_format = MEDIA_FORMAT_NV12,
+    .out_width = 640, .out_height = 360,
+    .output_format = MEDIA_FORMAT_NV12,
+    .output_pool_id = out_pool,
+    .keep_aspect_ratio = 1,
+};
+MEDIA_RESIZE_RGA_CreateGrp(0, &attr);
+MEDIA_RESIZE_RGA_Start(0);
+MEDIA_BUFFER out;
+MEDIA_RESIZE_RGA_GetFrame(0, &out, 1000);
+MEDIA_RESIZE_RGA_ReleaseFrame(0, out);
+MEDIA_RESIZE_RGA_Stop(0);
+MEDIA_RESIZE_RGA_DestroyGrp(0);
+MEDIA_SYS_Exit();
 ```
 
 也可以作为插件加载后直接 Bind：
 
 ```c
-MEDIA_SYS_Bind("TPG", 0, "output0", "RESIZE_RGA", 0, "input0")
+MEDIA_SYS_Bind("TPG", 0, "output0", "RESIZE_RGA", 0, "input0");
 ```
 
 调用任何 `MEDIA_RESIZE_RGA_*` 前必须先 `MEDIA_SYS_Init`。

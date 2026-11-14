@@ -14,21 +14,21 @@
 
 ```c
 MEDIA_TRANSFORM_ATTR a = {
-    .in_width = 1920
-    .in_height = 1080
-    .input_format = MEDIA_FORMAT_NV12
-    .out_width = 1280
-    .out_height = 720
-    .output_format = MEDIA_FORMAT_ABGR8888
-    .pool_id = output_pool
-    .lut = xy
-    .lut_width = 1280
-    .lut_height = 720
-    .lut_size = 1280u * 720u * 2u * sizeof(float)
-}
-MEDIA_TRANSFORM_CreateGrp(0, &a)
-MEDIA_SYS_Bind("VI", 0, "output0", "TRANSFORM", 0, "input0")
-MEDIA_TRANSFORM_Start(0)
+    .in_width = 1920,
+    .in_height = 1080,
+    .input_format = MEDIA_FORMAT_NV12,
+    .out_width = 1280,
+    .out_height = 720,
+    .output_format = MEDIA_FORMAT_ABGR8888,
+    .pool_id = output_pool,
+    .lut = xy,
+    .lut_width = 1280,
+    .lut_height = 720,
+    .lut_size = 1280u * 720u * 2u * sizeof(float),
+};
+MEDIA_TRANSFORM_CreateGrp(0, &a);
+MEDIA_SYS_Bind("VI", 0, "output0", "TRANSFORM", 0, "input0");
+MEDIA_TRANSFORM_Start(0);
 ```
 
 输出 Pool 的 slot 数量应覆盖下游队列和在途帧，slot 容量至少为 `MEDIA_VIDEO_QueryLayout` 返回的大小。插件只使用公开 SDK 和 GLES；不提供 CPU、OpenCL、Vulkan 或 NPU 后端。输入帧必须带真实 `MEDIA_BUFFER_META_VIDEO_FRAME` 布局，压缩输入的 `stride` 必须为 0。

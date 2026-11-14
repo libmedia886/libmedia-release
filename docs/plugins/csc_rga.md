@@ -13,29 +13,29 @@ Buffer Pool。模块由 libmedia core 的内置 CSC_RGA 迁出，只依赖公开
 ## 使用
 
 ```c
-MEDIA_SYS_Init
-MEDIA_CSC_RGA_ATTR attr = {0}
-attr.input_width = 1920
-attr.input_height = 1080
-attr.input_format = MEDIA_FORMAT_NV12
-attr.output_format = MEDIA_FORMAT_RGB888
+MEDIA_SYS_Init();
+MEDIA_CSC_RGA_ATTR attr = {0};
+attr.input_width = 1920;
+attr.input_height = 1080;
+attr.input_format = MEDIA_FORMAT_NV12;
+attr.output_format = MEDIA_FORMAT_RGB888;
 attr.output_pool_id = out_pool;      /* 输出固定 Pool，必须已创建 */
-attr.csc_mode = CSC_RGA_CSC_BT601_LIMIT
-MEDIA_CSC_RGA_CreateGrp(0, &attr)
-MEDIA_CSC_RGA_Start(0)
+attr.csc_mode = CSC_RGA_CSC_BT601_LIMIT;
+MEDIA_CSC_RGA_CreateGrp(0, &attr);
+MEDIA_CSC_RGA_Start(0);
 /* 手动送帧 */
-MEDIA_SYS_SendFrame("CSC_RGA", 0, "input0", in_buf, 1000)
-MEDIA_BUFFER out
-MEDIA_CSC_RGA_GetFrame(0, &out, 1000)
-MEDIA_CSC_RGA_ReleaseFrame(0, &out)
-MEDIA_CSC_RGA_Stop(0)
-MEDIA_CSC_RGA_DestroyGrp(0)
+MEDIA_SYS_SendFrame("CSC_RGA", 0, "input0", in_buf, 1000);
+MEDIA_BUFFER out;
+MEDIA_CSC_RGA_GetFrame(0, &out, 1000);
+MEDIA_CSC_RGA_ReleaseFrame(0, &out);
+MEDIA_CSC_RGA_Stop(0);
+MEDIA_CSC_RGA_DestroyGrp(0);
 ```
 
 或与上游模块 Bind（实例名仍是 `CSC_RGA_<grp>`，端口仍是 `input0` / `output0`）：
 
 ```c
-MEDIA_SYS_Bind("VPSS", 0, "output0", "CSC_RGA", 0, "input0")
+MEDIA_SYS_Bind("VPSS", 0, "output0", "CSC_RGA", 0, "input0");
 ```
 
 输出尺寸恒等于输入尺寸；`output_pool_id` 是唯一输出目标，不会回退到输入 Pool。
@@ -58,8 +58,8 @@ MEDIA_SYS_Bind("VPSS", 0, "output0", "CSC_RGA", 0, "input0")
 API。只允许在 `CreateGrp` 之后、`Start` 之前调用：
 
 ```c
-int mode = CSC_RGA_CSC_BT709_LIMIT
-MEDIA_PLUGIN_SetParam("CSC_RGA", 0, "csc_mode", &mode, sizeof(mode))
+int mode = CSC_RGA_CSC_BT709_LIMIT;
+MEDIA_PLUGIN_SetParam("CSC_RGA", 0, "csc_mode", &mode, sizeof(mode));
 ```
 
 运行中调用返回 `MEDIA_ERR_PIPELINE_STATE`，需要先 `Stop` 再设置。

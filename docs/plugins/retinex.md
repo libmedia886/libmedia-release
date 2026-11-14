@@ -82,7 +82,7 @@ Yout = max(Yout, Y0 / 255)
 
 ## 应用 API
 
-```c
+```text
 int MEDIA_RETINEX_CreateGrp(int grp, const MEDIA_RETINEX_ATTR *attr)
 int MEDIA_RETINEX_SetGrpAttr(int grp, const MEDIA_RETINEX_ATTR *attr)
 int MEDIA_RETINEX_DestroyGrp(int grp)
@@ -133,53 +133,53 @@ int MEDIA_RETINEX_SetPassthrough(int grp, int enable)
 #define POOL_IN 1
 #define POOL_OUT 2
 
-MEDIA_VIDEO_LAYOUT layout
-MEDIA_RETINEX_ATTR attr
-MEDIA_TPG_ATTR tpg
-MEDIA_BUFFER frame
-size_t size = 0
-MEDIA_SYS_Init
+MEDIA_VIDEO_LAYOUT layout;
+MEDIA_RETINEX_ATTR attr;
+MEDIA_TPG_ATTR tpg;
+MEDIA_BUFFER frame;
+size_t size = 0;
+MEDIA_SYS_Init();
 /* 直接链接 libmedia_retinex.so 时，首次调用 MEDIA_RETINEX_* 会自动注册插件
  * 仅 dlopen 方式则先 MEDIA_PLUGIN_Load("libmedia_retinex.so")。 */
-MEDIA_VIDEO_QueryLayout(1920, 1080, MEDIA_FORMAT_NV12, 0, &layout, &size)
-MEDIA_POOL_CreateWithMode(POOL_IN, size, 8, MEDIA_POOL_ALLOC_MODE_NATIVE)
-MEDIA_POOL_CreateWithMode(POOL_OUT, size, 6, MEDIA_POOL_ALLOC_MODE_NATIVE)
-memset(&attr, 0, sizeof(attr))
-attr.scale_count = 1
-attr.width = 1920
-attr.height = 1080
-attr.format = MEDIA_FORMAT_NV12
-attr.gain = 32.0f
-attr.log_min = -3.0f
-attr.output_pool_id = POOL_OUT
+MEDIA_VIDEO_QueryLayout(1920, 1080, MEDIA_FORMAT_NV12, 0, &layout, &size);
+MEDIA_POOL_CreateWithMode(POOL_IN, size, 8, MEDIA_POOL_ALLOC_MODE_NATIVE);
+MEDIA_POOL_CreateWithMode(POOL_OUT, size, 6, MEDIA_POOL_ALLOC_MODE_NATIVE);
+memset(&attr, 0, sizeof(attr));
+attr.scale_count = 1;
+attr.width = 1920;
+attr.height = 1080;
+attr.format = MEDIA_FORMAT_NV12;
+attr.gain = 32.0f;
+attr.log_min = -3.0f;
+attr.output_pool_id = POOL_OUT;
 if (MEDIA_RETINEX_CreateGrp(GRP, &attr) != MEDIA_STATUS_OK) {
-    return -1
+    return -1;
 }
 
-memset(&tpg, 0, sizeof(tpg))
-tpg.width = 1920
-tpg.height = 1080
+memset(&tpg, 0, sizeof(tpg));
+tpg.width = 1920;
+tpg.height = 1080;
 tpg.stride = (int)layout.pitch_bytes[0]; /* 与 Retinex 输入端口声明的 stride 一致 */
-tpg.format = MEDIA_FORMAT_NV12
-tpg.pool_id = POOL_IN
-tpg.pattern = MEDIA_TPG_PATTERN_COLOR_BARS
-MEDIA_TPG_CreateChn(0, &tpg)
-MEDIA_SYS_Bind("TPG", 0, "output0", "RETINEX", GRP, "input0")
-MEDIA_RETINEX_Start(GRP)
-MEDIA_TPG_Start(0)
+tpg.format = MEDIA_FORMAT_NV12;
+tpg.pool_id = POOL_IN;
+tpg.pattern = MEDIA_TPG_PATTERN_COLOR_BARS;
+MEDIA_TPG_CreateChn(0, &tpg);
+MEDIA_SYS_Bind("TPG", 0, "output0", "RETINEX", GRP, "input0");
+MEDIA_RETINEX_Start(GRP);
+MEDIA_TPG_Start(0);
 if (MEDIA_RETINEX_GetFrame(GRP, &frame, 1000) == MEDIA_STATUS_OK) {
     /* 使用 frame，例如送 VO 或读取 Y 平面 */
-    MEDIA_RETINEX_ReleaseFrame(GRP, frame)
+    MEDIA_RETINEX_ReleaseFrame(GRP, frame);
 }
 
-MEDIA_TPG_Stop(0)
-MEDIA_RETINEX_Stop(GRP)
-MEDIA_SYS_UnBind("TPG", 0, "output0", "RETINEX", GRP, "input0")
-MEDIA_RETINEX_DestroyGrp(GRP)
-MEDIA_TPG_DestroyChn(0)
-MEDIA_POOL_Destroy(POOL_OUT)
-MEDIA_POOL_Destroy(POOL_IN)
-MEDIA_SYS_Exit
+MEDIA_TPG_Stop(0);
+MEDIA_RETINEX_Stop(GRP);
+MEDIA_SYS_UnBind("TPG", 0, "output0", "RETINEX", GRP, "input0");
+MEDIA_RETINEX_DestroyGrp(GRP);
+MEDIA_TPG_DestroyChn(0);
+MEDIA_POOL_Destroy(POOL_OUT);
+MEDIA_POOL_Destroy(POOL_IN);
+MEDIA_SYS_Exit();
 ```
 
 插件形式的加载也可用环境变量：`MEDIA_SYS_Init` 会自动加载
