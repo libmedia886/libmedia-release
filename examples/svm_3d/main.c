@@ -85,6 +85,10 @@ int main(int argc, char **argv)
     const char *plugin = argc > 2 ? argv[2] : "../../plugins/libmedia_svm_3d.so";
     const char *asset = argc > 3 ? argv[3] : NULL;
     int r = 1, created = 0, started = 0;
+    /* frame() 返回的每一块 Buffer 都**持有一个引用**：要么 SendFrame 接管，
+     * 要么自己 PutBuffer 归还。用两个标志记住"已交给谁"，否则失败路径会泄漏，
+     * 导致 MEDIA_POOL_Destroy 拒绝销毁并打印 pool_id=27/28 未归还的警告。 */
+    int a_held = 0, b_held = 0;
     MEDIA_VIDEO_LAYOUT in, outl;
     size_t ni = 0, no = 0;
     MEDIA_BUFFER a, b, o;
@@ -121,11 +125,18 @@ int main(int argc, char **argv)
         goto done;
     }
 
-    /* [3] 造两帧“左右目”图。 */
-    if (frame(POOL_A, &in, ni, 0, &a) || frame(POOL_B, &in, ni, 1, &b)) {
-        fprintf(stderr, "SVM3D failed to build input frames\n");
+    /* [3] 造两帧“左右目”图。两次调用要分开写：短路求值时第二个 frame()
+     *     可能根本没跑，用一条 || 无法知道哪一块真的拿到了引用。 */
+    if (frame(POOL_A, &in, ni, 0, &a) != 0) {
+        fprintf(stderr, "SVM3D failed to build input frame A\n");
         goto done;
     }
+    a_held = 1;
+    if (frame(POOL_B, &in, ni, 1, &b) != 0) {
+        fprintf(stderr, "SVM3D failed to build input frame B\n");
+        goto done;
+    }
+    b_held = 1;
 
     /* [4] 创建模块。input_count=2 是双目的前提；
      *     sync_wait_inputs=1 表示必须两路都到齐才开始计算，
@@ -169,11 +180,19 @@ int main(int argc, char **argv)
     started = 1;
 
     /* [5] 两路分别送到输入 0 和输入 1。注意顺序：
-     *     0 号通常是左目，1 号是右目，接反了视差方向会相反。 */
-    if (MEDIA_SVM3D_SendFrame(0, 0, a, 1000) || MEDIA_SVM3D_SendFrame(0, 1, b, 1000)) {
-        fprintf(stderr, "SVM3D send frame failed\n");
+     *     0 号通常是左目，1 号是右目，接反了视差方向会相反。
+     *     SendFrame **成功**才把引用交给模块；失败时引用仍在我们手上，必须自己归还。
+     *     所以两次调用分开写，并在成功后立刻清标志。 */
+    if (MEDIA_SVM3D_SendFrame(0, 0, a, 1000) != 0) {
+        fprintf(stderr, "SVM3D send frame A failed\n");
         goto done;
     }
+    a_held = 0;
+    if (MEDIA_SVM3D_SendFrame(0, 1, b, 1000) != 0) {
+        fprintf(stderr, "SVM3D send frame B failed\n");
+        goto done;
+    }
+    b_held = 0;
 
     /* [6] 取视差图。这里用模块专用 GetFrame，等待时间给足 5 秒。 */
     r = MEDIA_SVM3D_GetFrame(0, &o, 5000);
@@ -207,6 +226,13 @@ done:
         MEDIA_PLUGIN_Stop("SVM3D", 0);
     if (created)
         MEDIA_PLUGIN_DestroyModule("SVM3D", 0);
+    /* 失败路径上没送出去的两块输入帧必须自己归还。有未归还引用时，
+     * MEDIA_POOL_Destroy 会**拒绝销毁**并打印 "仍有 N 个 buffer 未归还" ——
+     * 那条信息是核心在如实报告泄漏，不是核心的 bug。 */
+    if (a_held)
+        MEDIA_POOL_PutBuffer(a);
+    if (b_held)
+        MEDIA_POOL_PutBuffer(b);
     MEDIA_POOL_Destroy(POOL_OUT);
     MEDIA_POOL_Destroy(POOL_B);
     MEDIA_POOL_Destroy(POOL_A);
