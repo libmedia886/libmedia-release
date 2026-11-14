@@ -81,6 +81,18 @@ cmake --build build/clahe -j2
 (cd build/clahe && ./clahe_tutorial)
 ```
 
+### 运行时会看到两类标准错误，都不代表失败
+
+`stderr` 上有两种正常输出，第一次运行时不要被它们误导：
+
+```text
+[libmedia license] tpg：本软件为闭源软件，……        ← 每个被加载的插件打 2 行（中英各一）
+arm_release_ver: g24p0-00eac0, rk_so_ver: 6          ← GPU 驱动打印的版本横幅
+```
+
+后者来自 Mali 驱动、走 `stdout`，每次运行都会有。**判断成功看退出码和那一行结果输出，不要看 `stderr` 是否为空。**
+需要多少个插件，就看到多少组许可行——例如 `load_all` 加载 32 个插件，会有 64 行。
+
 每个 README 会把实际命令简化为可复制版本。运行输出中的 `saved ... bytes`、尺寸和格式就是检查管线是否真的产出帧的证据。改变命令行参数后，建议保存到两个不同文件并比较：
 
 ```sh
