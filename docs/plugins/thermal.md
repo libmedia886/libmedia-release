@@ -13,6 +13,7 @@
 示例：
 
 ```c
+#include "media_thermal.h"
 MEDIA_THERMAL_ATTR a = {0};
 a.width = 640; a.height = 480; a.format = MEDIA_FORMAT_NV12;
 a.color_mode = MEDIA_THERMAL_COLOR_RAINBOW;

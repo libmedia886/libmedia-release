@@ -23,6 +23,7 @@
 示例：
 
 ```c
+#include "media_svm_3d.h"
 MEDIA_SVM3D_ATTR attr = {
     .input_count = 2,
     .input_format = MEDIA_FORMAT_NV12,

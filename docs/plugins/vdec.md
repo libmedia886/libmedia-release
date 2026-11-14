@@ -27,6 +27,7 @@ VDEC 自己不解码到内部 buffer，而是解码到应用提供的 Pool 槽�
 3. 把 `pool_id` 填进 `MEDIA_VDEC_ATTR.pool_id` 再 `MEDIA_VDEC_CreateChn`。
 
 ```c
+#include "media_vdec.h"
 MEDIA_VDEC_ATTR attr = {0};
 MEDIA_VDEC_OUTPUT_POOL_REQUIREMENTS req;
 attr.width = 320;

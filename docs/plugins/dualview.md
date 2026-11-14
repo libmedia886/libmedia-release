@@ -34,6 +34,7 @@ OpenGL ES 3 fragment shader 完成缩放和写入。插件 type 名是 `DUALVIEW
 插件。例如：
 
 ```c
+#include "media_dualview.h"
 MEDIA_DUALVIEW_ATTR attr = {0};
 attr.input_width = 1920;
 attr.input_height = 1080;

@@ -13,6 +13,7 @@
 示例：
 
 ```c
+#include "media_transform.h"
 MEDIA_TRANSFORM_ATTR a = {
     .in_width = 1920,
     .in_height = 1080,

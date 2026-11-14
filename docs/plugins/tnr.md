@@ -13,6 +13,7 @@
 配置字段与旧 API 一致：`width`、`height`、`format`、`input_depth`、`output_pool_id`、`input_stride`、`output_stride`、`block_size`、`threshold`、`static_alpha`、`motion_alpha`、`passthrough`。阈值大于 1 时按 8 位码值除以 255；历史帧通过公开 Buffer retain 保留，只读使用。
 
 ```c
+#include "media_tnr.h"
 MEDIA_TNR_CL_ATTR attr = {
     .width = 1920, .height = 1080, .format = MEDIA_FORMAT_NV12,
     .input_depth = 4, .output_pool_id = 2,

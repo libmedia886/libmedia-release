@@ -13,6 +13,7 @@ Buffer Pool。模块由 libmedia core 的内置 CSC_RGA 迁出，只依赖公开
 ## 使用
 
 ```c
+#include "media_csc_rga.h"
 MEDIA_SYS_Init();
 MEDIA_CSC_RGA_ATTR attr = {0};
 attr.input_width = 1920;

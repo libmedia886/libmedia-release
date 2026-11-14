@@ -14,6 +14,7 @@
 典型流程：
 
 ```c
+#include "media_panorama.h"
 MEDIA_PANO_ATTR attr = {
     .input_count = 4,
     .in_width = 1280,

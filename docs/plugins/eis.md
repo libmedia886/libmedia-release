@@ -14,6 +14,7 @@
 典型使用方式：
 
 ```c
+#include "media_eis.h"
 MEDIA_EIS_ATTR attr = {
     .width = 1920, .height = 1080, .format = MEDIA_FORMAT_NV12,
     .input_depth = 4, .output_pool_id = 12,

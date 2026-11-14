@@ -213,6 +213,7 @@ MEDIA_SYS_Exit
 再绑定 `output0`。旧版简化接口仍可直接使用：
 
 ```c
+#include "media_mcf_fusion.h"
 MEDIA_MCF_FUSION_CL_ATTR attr = {0};
 attr.width = 1920;
 attr.height = 1080;

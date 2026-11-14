@@ -25,6 +25,7 @@ BGGR、GBRG、GRBG、RGGB 四种 Bayer 排列，并透传帧时间戳和序号�
 示例：
 
 ```c
+#include "media_demosaic.h"
 MEDIA_DEMOSAIC_ATTR attr = {
     .width = 1920,
     .height = 1080,
