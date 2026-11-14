@@ -38,14 +38,33 @@ MEDIA_SYS_Exit();
 
 ## 3. 成功时你会看到什么
 
-一行标准输出，退出码 0：
+一行标准输出，两行标准错误，退出码 0：
 
 ```text
-libmedia initialized and TPG plugin loaded
+stdout: libmedia initialized and TPG plugin loaded
+stderr: [libmedia license] tpg：本软件为闭源软件，个人非商业使用免费；商业使用请联系 allinjetson@gmail.com。
+stderr: [libmedia license] tpg: This is closed-source software. Free for personal, non-commercial use; for commercial use, please contact allinjetson@gmail.com。
+exit code: 0
 ```
 
-没有文件产生，也不会出现画面——本示例不处理任何帧。任何一步失败都写 stderr 并以退出码 1
-结束，例如 `MEDIA_PLUGIN_Load failed: -<错误码>`；用 `echo $?` 核对退出码比读日志更快。
+**那两行 `[libmedia license]` 是正常的，不是错误。** 每个插件被加载时都会打印一次许可声明（中英各一行），
+所以 `stderr` 非空完全不代表失败——本示例退出码是 0。
+
+没有文件产生，也不会出现画面——本示例不处理任何帧。**判断成功与否请看退出码，不要看 stderr 是否为空。**
+用 `echo $?` 核对退出码比读日志更快。
+
+失败时退出码为 1，`stdout` 为空，`stderr` 里没有 `[libmedia license]` 行，而是两行具体原因。
+下面是把 `plugins/libmedia_tpg.so.sig` 临时改名后实测的输出：
+
+```text
+[libmedia] plugin .../plugins/libmedia_tpg.so: signature file .../plugins/libmedia_tpg.so.sig not found; refusing to load
+MEDIA_PLUGIN_Load failed: -1013
+```
+
+`-1013` 就是 `MEDIA_ERR_PLUGIN_SIGNATURE`（见 `include/media_api.h`）。所以区分成功和失败有两眼可看的标志：
+**成功有 `[libmedia license]`、退出码 0；失败没有许可行、退出码 1 且末行是 `MEDIA_PLUGIN_Load failed:`。**
+
+插件越多，许可行越多：`load_all` 加载 32 个插件，会打印 64 行 `[libmedia license]` 后再打印结果。
 
 加载成功只表示插件可以被映射和认证，不表示摄像头、GPU、MPP 或显示设备可用。要继续看到实际帧，请运行 `tpg`、`vi_mipi` 等教程。
 

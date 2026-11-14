@@ -14,13 +14,24 @@ cmake --build build/load_all -j2
 
 ## 2. 输出怎么读
 
-程序会为每个 `.so` 调用加载接口，并在最后打印：
+程序会为每个 `.so` 调用加载接口。**`stdout` 只有最后一行，`stderr` 会有几十行**，两者都要看：
 
 ```text
-loaded 32 signed plugins
+stdout（1 行）：loaded 32 signed plugins
+
+stderr（64 行）：[libmedia license] …（每个加载成功的插件 2 行：中文 + 英文）
+stderr（5 行） ：[libmedia] plugin …/libmedia_conv.so: too many plugins loaded (max 32)
 ```
 
-当前核心的单进程加载上限是 `MEDIA_PLUGIN_MAX_LOADED=32`，而发布包可能有 37 个插件。因此看到 32 并不表示少了 5 个文件：前 32 个能加载即可，实际应用通常只加载所需插件。目录中的 `.so.sig` 不会被当成插件扫描，因为它不是以 `.so` 结尾。
+**64 行许可声明是正常的，不是错误**，退出码是 0。`[libmedia]` 那 5 行 `too many plugins loaded` 也是**预期的**——
+它正是下面说的加载上限，不是文件损坏。发布包实测是 **37 个 `.so` + 37 个 `.so.sig`**，
+32 个成功加载的插件各打印 2 行许可行，所以是 64 行。
+
+当前核心的单进程加载上限是 `MEDIA_PLUGIN_MAX_LOADED=32`，而发布包有 37 个插件。因此看到 32 并不表示少了 5 个文件：前 32 个能加载即可，实际应用通常只加载所需插件。目录中的 `.so.sig` 不会被当成插件扫描，因为它不是以 `.so` 结尾。
+
+被拒的 5 个取决于扫描顺序。本机实测两次都是同样 5 个（`conv`、`panorama`、`svm_3d`、`tnr`、`vi`），
+但**不要依赖这个结果**：换机器、换文件系统、或增删插件都会改变顺序。想确认某个插件本身没问题，
+把它和 `.so.sig` 单独放进一个目录，再用 `minimal` 那样的单插件程序加载。
 
 ## 3. 检查失败的步骤
 
