@@ -17,6 +17,10 @@ LD_LIBRARY_PATH=lib:plugins ./build/osd/osd_tutorial osd_out.nv12
 ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 osd_out.nv12
 ```
 
+程序只认一个可选参数：`argv[1]` 是输出文件路径。不传时写当前目录的 `osd_out.nv12`，
+传了就写到你给的路径；目录必须已存在，程序不会自动创建，路径不可写会在写文件时失败。
+后面那条 `ffplay` 要指向同一个文件名，否则播放的是上一次留下的旧文件。
+
 程序使用两个 640×480 NV12 `NATIVE` Pool：TPG 的源 Pool 和 OSD 的输出 Pool，各 4 个槽。NATIVE 是 DMA-BUF 内存，适合硬件/GLES 处理；如果改成 HOST，创建或导入可能失败。
 
 ## 3. 代码流程

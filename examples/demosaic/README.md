@@ -22,6 +22,10 @@ LD_LIBRARY_PATH=lib:plugins ./build/demosaic/demosaic_tutorial out.rgb_u16
 ls -l out.rgb_u16
 ```
 
+程序只认一个可选参数：`argv[1]` 是输出文件路径。不传时写当前目录的
+`demosaic_out.rgb_u16`，传了就写到你给的路径；目录必须已存在，程序不会自动创建，
+路径不可写会在写文件那一步失败并返回非 0。输入图像由程序自己生成，不接受输入文件。
+
 输出是裸 RGB_U16，没有 PNG 头。当前程序固定 64×48、每像素 6 字节，文件应约为 `64*48*6 = 18432` 字节（Pool 可能包含对齐填充）。查看时要按交错 16 bit、小端、RGB 顺序解释；可用 Python 检查：
 
 ```sh

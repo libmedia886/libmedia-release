@@ -57,4 +57,15 @@ ffplay -f rawvideo -pixel_format nv12 -video_size 320x240 decoded.nv12
 - ffplay 无法识别：确认文件是 Annex-B H.264，且没有把日志写进输出文件；可用 `file out.h264`、`ffprobe -f h264 out.h264` 检查。
 - 画面尺寸不对：stride 是每行字节数，不是可见宽度；修改 width 时要重新计算 layout。
 
+## 5. 下一步
+
+- **解码回来对比**：`examples/vdec` 就是这一步，命令在本页 §1 已经给出。编码→解码→播放
+  走通，才说明你的码流不是"文件非空但内容错"。
+- **换成真实画面**：把本示例手工 `SendFrame` 的帧换成采集帧，用 Bind 连接，不再需要自己送帧：
+  `MEDIA_SYS_Bind("VI", 0, "output0", "VENC", 0, "input0")`（VI 侧见 `examples/vi_mipi`）。
+- **换编码格式**：把 `MEDIA_VENC_ATTR.video_format` 从 `MEDIA_FORMAT_H264` 改成
+  `MEDIA_FORMAT_H265`，播放改用 `ffplay -f hevc`。改错枚举会在 `CreateChn` 阶段被拒，不会静默产出坏码流。
+- **调画质**：先只改 `bitrate` 和 `gop` 两个值各跑一次，用 `ls -l` 对比文件大小。同一段素材，
+  码率翻倍文件应接近翻倍；没变说明码率没有生效。
+
 详见 [`docs/plugins/venc.md`](../../docs/plugins/venc.md) 和 [`include/media_venc.h`](../../include/media_venc.h)。

@@ -36,9 +36,20 @@ MEDIA_SYS_Exit();
 - `MEDIA_PLUGIN_Load`：读取 `.so`，验证同目录同名 `.so.sig`，成功后注册插件导出的模块类型。
 - `MEDIA_SYS_Exit`：销毁仍存活的全局资源；真实程序应先 Stop/Destroy 自己创建的模块。
 
+## 3. 成功时你会看到什么
+
+一行标准输出，退出码 0：
+
+```text
+libmedia initialized and TPG plugin loaded
+```
+
+没有文件产生，也不会出现画面——本示例不处理任何帧。任何一步失败都写 stderr 并以退出码 1
+结束，例如 `MEDIA_PLUGIN_Load failed: -<错误码>`；用 `echo $?` 核对退出码比读日志更快。
+
 加载成功只表示插件可以被映射和认证，不表示摄像头、GPU、MPP 或显示设备可用。要继续看到实际帧，请运行 `tpg`、`vi_mipi` 等教程。
 
-## 3. 签名和错误排查
+## 4. 签名和错误排查
 
 - `MEDIA_ERR_PLUGIN_SIGNATURE`：缺少 `.sig`、签名与文件不匹配，或文件被修改；重新从同一发布包复制 `.so` 和 `.so.sig`。
 - `dlopen`/依赖错误：执行 `ldd plugins/libmedia_tpg.so`，检查 `libmedia.so` 是否存在；必要时设置 `LD_LIBRARY_PATH=lib:plugins`。

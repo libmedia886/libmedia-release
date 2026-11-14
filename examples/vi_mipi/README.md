@@ -79,4 +79,14 @@ Pool 槽数太少会导致驱动无法维持流水线；槽大小太小会在 En
 - RAW 节点不能采 NV12：RAW10/RAW12 需要专门的 unpack + demosaic 流程，不能套用本示例。
 - 画面花屏：按 metadata 的 pitch/offset 保存和查看，不能把 stride 当作 width。
 
+## 6. 下一步
+
+- **让画面动起来**：`frames` 传 100，再把输出的 `frame_*.nv12` 按顺序连成一个文件，
+  就能用 `ffplay` 看连续运动而不是单帧。
+- **接编码**：`MEDIA_SYS_Bind("VI", 0, "output0", "VENC", 0, "input0")`，省掉写文件再喂
+  给别的程序的步骤（VENC 侧见 `examples/venc`）。
+- **接缩放**：`VI:output0 → VPSS:input0`（端口名以 `examples/vpss_16out` 里的 Bind 为准）。
+- **处理 HDMI 插拔/换分辨率**：`MEDIA_VI_QuerySource` / `MEDIA_VI_WaitSourceChange` 不依赖
+  实例，用法见 `docs/plugins/vi.md`；本例是"采完就退"，没有覆盖这种情况。
+
 详见 [`docs/plugins/vi.md`](../../docs/plugins/vi.md)、[`include/media_vi.h`](../../include/media_vi.h)。

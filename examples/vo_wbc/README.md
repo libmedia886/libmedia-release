@@ -53,4 +53,14 @@ ffplay -f rawvideo -pixel_format nv12 -video_size 1920x1080 frame.nv12
 - `GetFrame` 超时：DRM master 被桌面占用、commit fence 未完成，或刷新率/带宽过高。
 - NV12 花屏：VO_WBC 可能返回对齐 pitch，不能用 `width*height*3/2` 生搬硬套。
 
+## 5. 下一步
+
+- **真抓一帧**：把本程序打印的 `connector_id` / `crtc_id` 填进 `MEDIA_VO_WBC_ATTR`，按 §2 的
+  CreateChn → Start → GetFrame 跑起来，再用 §3 的命令验证文件。探测成功不等于能抓帧——
+  这一步才是真正的验证。
+- **直接录制**：`MEDIA_SYS_Bind("VO_WBC", 0, "output0", "VENC", 0, "input0")`，省掉写裸文件
+  再转码；VENC 侧见 `examples/venc`。
+- **看显示侧**：`examples/vo` 是把帧推到屏幕上，和本模块争的是同一套 DRM 资源，两边的
+  `crtc_id` 要对得上。
+
 详见 [`docs/plugins/vo_wbc.md`](../../docs/plugins/vo_wbc.md) 和 [`include/media_vo_wbc.h`](../../include/media_vo_wbc.h)。

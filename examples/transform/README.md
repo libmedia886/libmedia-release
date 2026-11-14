@@ -21,6 +21,11 @@ LD_LIBRARY_PATH=lib:plugins ./build/transform/transform_tutorial transform_out.n
 ffplay -f rawvideo -pixel_format nv12 -video_size 320x240 transform_out.nv12
 ```
 
+程序只认一个可选参数：`argv[1]` 是输出文件路径。不传时写当前目录的
+`transform_out.nv12`，传了就写到你给的路径；目录必须已存在，程序不会自动创建。
+注意保存的是 **320×240 的输出**，`ffplay` 的 `-video_size` 必须写 320x240——写成输入的
+640x480 会看到半幅画面和错位色块。输入画面来自程序内的 TPG，不需要外部素材。
+
 输入 Pool 0 为 640×480，输出 Pool 1 为 320×240；两者均为 `NATIVE` DMA-BUF。`in_stride/out_stride` 必须使用 `MEDIA_VIDEO_BuildLinearLayout` 返回的 pitch，不能假设等于 width。
 
 ## 3. 逐步流程
