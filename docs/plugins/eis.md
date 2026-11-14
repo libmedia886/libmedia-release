@@ -29,13 +29,17 @@ MEDIA_SYS_UnBind("VI", 0, "output0", "EIS", 0, "input0");
 MEDIA_EIS_DestroyGrp(0);
 ```
 
-独立构建：
+构建并运行本模块的示例（在发布包根目录执行）：
 
 ```sh
-cmake -S . -B build -DBUILD_TESTING=ON -DMEDIA_SDK_DIR=/root/work/rktohi/wt/sdk
-cmake --build build -j2
-LD_LIBRARY_PATH=/root/work/rktohi/wt/sdk/lib (cd build && ctest) --output-on-failure
+cmake -S examples/eis -B build/eis
+cmake --build build/eis -j2
+LD_LIBRARY_PATH=lib:plugins ./build/eis/eis_tutorial eis_out.nv12
 ```
+
+发布包里只有预编译的 `plugins/libmedia_eis.so` 和它的签名文件，**没有插件源码**，
+所以这里不再给出"单独编译本插件"的命令——`cmake -S .` 在包根目录没有可读的
+`CMakeLists.txt`，照抄只会失败。要自己编插件请取插件源码仓库。
 
 限制：仅 GLES、仅 NV12 线性布局、固定尺寸一进一出；不支持 AFBC、多路输入、RAW Bayer、滚动快门行变形和运行期改变端口尺寸。应用若要使用传感器或融合模式，可以调用兼容 API，但当前版本不会执行旧算法的 IMU/视觉估计。
 

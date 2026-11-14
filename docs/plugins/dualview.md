@@ -56,15 +56,18 @@ MEDIA_DUALVIEW_Start(0);
 限制：当前只接受 RGB888、LINEAR 和两路相同的输入尺寸；不提供 YUV、AFBC、CPU fallback、
 Vulkan/OpenCL/NPU 路径，也不做跨时间戳同步。程序二进制和生成的 C 文件只存在于构建目录。
 
-构建和测试：
+构建并运行本模块的示例（在发布包根目录执行）：
 
 ```bash
-cmake -S . -B /root/work/rktohi/wt/build/dualview \
-  -DBUILD_TESTING=ON -DMEDIA_SDK_DIR=/root/work/rktohi/wt/sdk
-cmake --build /root/work/rktohi/wt/build/dualview -j2
-cd /root/work/rktohi/wt/build/dualview
-LD_LIBRARY_PATH=/root/work/rktohi/wt/sdk/lib ctest --output-on-failure
+cmake -S examples/dualview -B build/dualview
+cmake --build build/dualview -j2
+(cd build/dualview && ./dualview_tutorial 0 side.rgb)
 ```
+
+发布包里只有预编译的 `plugins/libmedia_dualview.so` 和它的签名文件，**没有插件源码**，
+所以这里不再给出"单独编译本插件"的命令——`cmake -S .` 在包根目录没有可读的
+`CMakeLists.txt`，照抄只会失败。要自己编插件请取插件源码仓库。
+第 1 个参数 `0` 是左右并排模式（`1` 为逐行交错），详见 `examples/dualview/README.md`。
 
 ## 在发布包中使用
 

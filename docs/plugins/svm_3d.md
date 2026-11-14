@@ -43,14 +43,21 @@ MEDIA_SVM3D_Start(0);
 
 输出 Pool 每个 buffer 必须至少容纳查询到的线性四通道帧大小，数量应覆盖下游队列和在途帧。插件不会修改输入 buffer；Stop/Destroy 后所有 RecvFrame 和输出 buffer 都归还。AFBC、10-bit 输出、CPU fallback、OpenCL、Vulkan 和 NPU 后端不支持。
 
-独立构建：
+构建本模块的示例（在发布包根目录执行）：
 
 ```sh
-cmake -S . -B /root/work/rktohi/wt/build/svm_3d -DBUILD_TESTING=ON -DMEDIA_SDK_DIR=/root/work/rktohi/wt/sdk
-cmake --build /root/work/rktohi/wt/build/svm_3d -j2
-cd /root/work/rktohi/wt/build/svm_3d
-LD_LIBRARY_PATH=/root/work/rktohi/wt/sdk/lib ctest --output-on-failure
+export LD_LIBRARY_PATH="$PWD/plugins:$PWD/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+cmake -S examples/svm_3d -B build/svm_3d
+cmake --build build/svm_3d -j2
 ```
+
+发布包里只有预编译的 `plugins/libmedia_svm_3d.so` 和它的签名文件，**没有插件源码**，
+所以这里不再给出"单独编译本插件"的命令——`cmake -S .` 在包根目录没有可读的
+`CMakeLists.txt`，照抄只会失败。要自己编插件请取插件源码仓库。
+
+本模块**必须有标定资产**才能创建成功，运行命令要带 asset manifest（第 3 个参数），
+因此必须同时写明插件路径（第 2 个参数）；具体命令和失败时的输出见
+`examples/svm_3d/README.md`。
 
 ## 在发布包中使用
 

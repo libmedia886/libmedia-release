@@ -49,15 +49,17 @@ MEDIA_DEMOSAIC_Destroy(0);
 实际 RAW16→RGB_U16 处理使用 CPU 访问路径该路径按 SDK
 要求成对调用 `MEDIA_POOL_BeginCpuAccess/EndCpuAccess`，不会修改输入帧。
 
-构建与测试：
+构建并运行本模块的示例（在发布包根目录执行）：
 
 ```bash
-cmake -S . -B /root/work/rktohi/wt/build/demosaic \
-  -DBUILD_TESTING=ON -DMEDIA_SDK_DIR=/root/work/rktohi/wt/sdk
-cmake --build /root/work/rktohi/wt/build/demosaic -j2
-cd /root/work/rktohi/wt/build/demosaic
-LD_LIBRARY_PATH=/root/work/rktohi/wt/sdk/lib ctest --output-on-failure
+cmake -S examples/demosaic -B build/demosaic
+cmake --build build/demosaic -j2
+LD_LIBRARY_PATH=lib:plugins ./build/demosaic/demosaic_tutorial demosaic_out.rgb_u16
 ```
+
+发布包里只有预编译的 `plugins/libmedia_demosaic.so` 和它的签名文件，**没有插件源码**，
+所以这里不再给出"单独编译本插件"的命令——`cmake -S .` 在包根目录没有可读的
+`CMakeLists.txt`，照抄只会失败。要自己编插件请取插件源码仓库。
 
 ## 在发布包中使用
 

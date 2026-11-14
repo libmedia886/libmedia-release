@@ -33,13 +33,17 @@ MEDIA_SYS_ReleaseFrame("THERMAL", 0, "output0", output);
 
 输出 metadata 会透传输入 timestamp/seq，并发布真实 `MEDIA_VIDEO_LAYOUT` 和 payload 长度。输入 Pool 必须有足够的 slot 支撑 Bind 队列深度及在途帧数量；`output_pool_id` 必须是已创建、容量至少为 `MEDIA_VIDEO_QueryLayout` 返回值、且每个 slot 都能被 GLES 导入的 Pool。LINEAR 时 stride 为 0 或 canonical pitch，压缩布局时 stride 必须为 0。只支持公开 SDK 的 GLES 路径，弃用旧 Vulkan/OpenCL/CPU fallback；不支持 10 位输入、缩放、多路输入或动态尺寸。
 
-独立构建：
+构建并运行本模块的示例（在发布包根目录执行）：
 
 ```sh
-cmake -S . -B build -DBUILD_TESTING=ON -DMEDIA_SDK_DIR=/root/work/rktohi/wt/sdk
-cmake --build build -j2
-LD_LIBRARY_PATH=/root/work/rktohi/wt/sdk/lib (cd build && ctest) --output-on-failure
+cmake -S examples/thermal -B build/thermal
+cmake --build build/thermal -j2
+LD_LIBRARY_PATH=lib:plugins ./build/thermal/thermal_tutorial
 ```
+
+发布包里只有预编译的 `plugins/libmedia_thermal.so` 和它的签名文件，**没有插件源码**，
+所以这里不再给出"单独编译本插件"的命令——`cmake -S .` 在包根目录没有可读的
+`CMakeLists.txt`，照抄只会失败。要自己编插件请取插件源码仓库。
 
 ## 在发布包中使用
 
