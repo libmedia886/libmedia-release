@@ -28,7 +28,7 @@ MEDIA_CSC_RGA_Start(0);
 MEDIA_SYS_SendFrame("CSC_RGA", 0, "input0", in_buf, 1000);
 MEDIA_BUFFER out;
 MEDIA_CSC_RGA_GetFrame(0, &out, 1000);
-MEDIA_CSC_RGA_ReleaseFrame(0, &out);
+MEDIA_CSC_RGA_ReleaseFrame(0, out);
 MEDIA_CSC_RGA_Stop(0);
 MEDIA_CSC_RGA_DestroyGrp(0);
 ```

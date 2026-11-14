@@ -19,7 +19,7 @@ V4L2 / HDMI-RX 视频采集，产出 `libmedia_vi.so` 与 [`include/media_vi.h`]
   `MEDIA_POOL_Create` 使用 `MEDIA_POOL_ALLOC_MODE_COMPAT`（system-dma32），`QBUF` 会被驱动以
   `EFAULT` 拒绝，`Enable` 失败。创建 Pool 必须显式指定 NATIVE：
   ```c
-  MEDIA_POOL_CreateWithMode(pool_id, size, count, MEDIA_POOL_ALLOC_MODE_NATIVE)
+  MEDIA_POOL_CreateWithMode(pool_id, size, count, MEDIA_POOL_ALLOC_MODE_NATIVE);
   ```
 - 输出格式的 canonical LINEAR 布局用 `MEDIA_VIDEO_QueryLayout(w, h, fmt, 0, ...)` 查询即可，包括 HDMI-RX
   常见的 `NV24`。注意 `NV24` 目前只有 CPU / DRM 扫描路径：Mali-G610 的 `eglCreateImage`
