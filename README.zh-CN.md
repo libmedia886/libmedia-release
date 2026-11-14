@@ -11,7 +11,8 @@
 ## 内容说明
 
 - `lib/libmedia.so`：核心库，已内嵌 Ed25519 公钥。
-- `lib/libmedia.so.sig`：核心库自身的分离签名。
+- `lib/libmedia.so.sig`：核心库自身的分离签名。**必需** —— 核心库在 `MEDIA_SYS_Init()` 启动时校验自身，缺这个文件所有示例都会非零退出。
+- `lib/public-key.raw`：本批 `.sig` 所用 Ed25519 公钥的 32 字节原始值，与编译进 `lib/libmedia.so` 的是同一把。它是公开信息、不是凭证；放在这里是为了让"这批签名由哪把钥匙签的"有可机械核对的答案，而不必去二进制里找。
 - `plugins/*.so`：外部模块。
 - `plugins/*.so.sig`：与每个插件逐字节对应的分离签名。
 - `include/`：应用侧与插件侧公开头文件。

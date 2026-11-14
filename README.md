@@ -12,6 +12,7 @@ One 1920×1080 NV12 frame in, 16 independently configured outputs out — rotati
 
 - `lib/libmedia.so`: core library with the embedded Ed25519 public key.
 - `lib/libmedia.so.sig`: detached signature of the core library itself.
+- `lib/public-key.raw`: the 32-byte Ed25519 public key that signed the `.sig` files in this release. It is the same key compiled into `lib/libmedia.so`, and it is public information, not a credential. It is shipped so that "which key signed these signatures" has a mechanical answer instead of having to find it inside the binary.
 - `plugins/*.so`: external modules.
 - `plugins/*.so.sig`: detached signatures matched to each plugin byte-for-byte.
 - `include/`: public application and plugin headers.
