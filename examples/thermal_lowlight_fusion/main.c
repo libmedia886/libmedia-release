@@ -1,99 +1,248 @@
-/* Two synthetic frames -> thermal_lowlight_fusion -> one raw output frame. */
+/*
+ * THERMAL_LOWLIGHT_FUSION_CL 入门教程：热成像 + 低照度融合
+ *
+ * 低照度画面暗、看不清轮廓；热成像不受光照影响，能给出轮廓和热源位置，
+ * 但几乎没有纹理。融合就是拿热成像的亮度结构和局部细节去补低照度画面，
+ * 需要时再把热点区域伪彩叠加到输出上。
+ *
+ * 输入端口有语义，顺序不能反：
+ *   input0 = thermal（热成像）
+ *   input1 = lowlight（低照度）
+ * 反过来送，热点判断和时间戳语义都会错。
+ *
+ * 本程序不读摄像头，自己在内存里造两张 640x480 的 NV12 图：
+ *   input0（source=1）：从上到下变亮，UV 偏蓝
+ *   input1（source=0）：从左到右变亮，UV 偏紫
+ *
+ * 命令行：thermal_lowlight_fusion_tutorial [mode] [output] [plugin]
+ *   mode=0 只融合亮度，输出灰阶（GRAY）
+ *   mode=1 额外把热点区域叠成红色（HOT_OVERLAY）
+ *
+ * 阅读顺序：
+ *   [1] 初始化 + 加载插件 -> [2] 两个 layout + 三个 Pool -> [3] 配置属性
+ *   -> [4] CreateModule / Start -> [5] 送帧（先 input1 后 input0）-> [6] 取帧保存
+ */
 #include <linux/dma-buf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+
 #include "media_api.h"
 #include "media_thermal_lowlight_fusion.h"
+
+/* ---- 本次实验的固定参数 ------------------------------------------------ */
 #define W 640
 #define H 480
-#define POOL_A 27
-#define POOL_B 28
-#define POOL_OUT 29
-#define POOL_MASK 30
+#define POOL_A 27       /* input0（thermal）Pool */
+#define POOL_B 28       /* input1（lowlight）Pool */
+#define POOL_OUT 29     /* 融合结果 Pool */
+#define POOL_MASK 30    /* 预留的遮罩 Pool（本教程未使用，但要在退出时销毁） */
 #define FMT MEDIA_FORMAT_NV12
-static int make_frame(int pool, const MEDIA_VIDEO_LAYOUT *layout, size_t bytes, int source, MEDIA_BUFFER *out)
+
+/*
+ * 造一帧测试图并设好 metadata。
+ * source=0 生成水平渐变（lowlight），source=1 生成垂直渐变（thermal）。
+ * 返回 0 表示 buffer 已填好并可交给模块。
+ */
+static int make_frame(int pool, const MEDIA_VIDEO_LAYOUT *layout, size_t bytes, int source,
+                      MEDIA_BUFFER *out)
 {
     MEDIA_BUFFER_META m;
     unsigned char *p;
-    if (MEDIA_POOL_GetBuffer(pool,out)) return -1;
-    p=MEDIA_POOL_GetVaddr(*out);
-    if (!p || MEDIA_POOL_BeginCpuAccess(*out,DMA_BUF_SYNC_WRITE)) goto fail;
-    memset(p,0,bytes);
+
+    if (MEDIA_POOL_GetBuffer(pool, out))
+        return -1;
+    p = MEDIA_POOL_GetVaddr(*out);
+    if (!p || MEDIA_POOL_BeginCpuAccess(*out, DMA_BUF_SYNC_WRITE))
+        goto fail;
+    memset(p, 0, bytes);
+
 #if FMT == MEDIA_FORMAT_RGB888
-    for (int y=0;y<H;y++) for (int x=0;x<W;x++) {
-        unsigned char *q=p+(size_t)y*layout->pitch_bytes[0]+3*x;
-        q[0]=(unsigned char)(source ? 20 : x*255/W);
-        q[1]=(unsigned char)(source ? y*255/H : 30);
-        q[2]=(unsigned char)(source ? 230 : 20);
-    }
+    /* 未启用的分支：保留它可以让你把 FMT 改成 RGB888 直接试。
+     * RGB888 每像素 3 字节，所以内层步长是 3*x。 */
+    for (int y = 0; y < H; y++)
+        for (int x = 0; x < W; x++) {
+            unsigned char *q = p + (size_t)y * layout->pitch_bytes[0] + 3 * x;
+
+            q[0] = (unsigned char)(source ? 20 : x * 255 / W);
+            q[1] = (unsigned char)(source ? y * 255 / H : 30);
+            q[2] = (unsigned char)(source ? 230 : 20);
+        }
 #else
-    for (int y=0;y<H;y++) for (int x=0;x<W;x++)
-        p[(size_t)y*layout->pitch_bytes[0]+x]=(unsigned char)(source ? 40+y*150/H : 40+x*150/W);
-    for (int y=0;y<H/2;y++) for (int x=0;x<W;x+=2) {
-        unsigned char *q=p+layout->offset_bytes[1]+(size_t)y*layout->pitch_bytes[1]+x;
-        q[0]=source?90:160; q[1]=source?200:90;
-    }
+    /* Y 平面：渐变，亮度范围 40..190。 */
+    for (int y = 0; y < H; y++)
+        for (int x = 0; x < W; x++)
+            p[(size_t)y * layout->pitch_bytes[0] + x] =
+                (unsigned char)(source ? 40 + y * 150 / H : 40 + x * 150 / W);
+    /* UV 平面：交错 U,V，所以按 x += 2 走。两路颜色不同，
+     * 融合后偏色能帮助判断输出取了哪一路。 */
+    for (int y = 0; y < H / 2; y++)
+        for (int x = 0; x < W; x += 2) {
+            unsigned char *q = p + layout->offset_bytes[1] +
+                               (size_t)y * layout->pitch_bytes[1] + x;
+
+            q[0] = source ? 90 : 160;
+            q[1] = source ? 200 : 90;
+        }
 #endif
-    MEDIA_POOL_EndCpuAccess(*out,DMA_BUF_SYNC_WRITE);
-    memset(&m,0,sizeof(m)); m.valid=1; m.type=MEDIA_BUFFER_META_VIDEO_FRAME;
-    m.media_format=FMT; m.len=(uint32_t)bytes; m.u.video=*layout;
-    m.seq=1; m.time_stamp=1000000;
-    if (MEDIA_BUFFER_SetMeta(*out,&m)==0) return 0;
-fail: MEDIA_POOL_PutBuffer(*out); return -1;
+
+    MEDIA_POOL_EndCpuAccess(*out, DMA_BUF_SYNC_WRITE);
+
+    /* 只填像素是不够的：模块靠 metadata 判断这块 DMA-BUF 是什么格式、
+     * 多大、怎么排。不设 metadata 就送帧，模块无法正确解释内存。 */
+    memset(&m, 0, sizeof(m));
+    m.valid = 1;
+    m.type = MEDIA_BUFFER_META_VIDEO_FRAME;
+    m.media_format = FMT;
+    m.len = (uint32_t)bytes;
+    m.u.video = *layout;
+    m.seq = 1;
+    m.time_stamp = 1000000;
+    if (MEDIA_BUFFER_SetMeta(*out, &m) == 0)
+        return 0;
+
+fail:
+    /* 任何一步失败都要把 buffer 还给 Pool，否则 Pool 会慢慢被占满。 */
+    MEDIA_POOL_PutBuffer(*out);
+    return -1;
 }
-static int send_frame(int pool, const MEDIA_VIDEO_LAYOUT *layout, size_t bytes, int source, const char *port)
+
+/* 造一帧并发到指定输入端口。端口名必须完全匹配（"input0" / "input1"）。 */
+static int send_frame(int pool, const MEDIA_VIDEO_LAYOUT *layout, size_t bytes, int source,
+                      const char *port)
 {
-    MEDIA_BUFFER b; int r=make_frame(pool,layout,bytes,source,&b);
-    if(r) return r;
-    r=MEDIA_SYS_SendFrame("THERMAL_LOWLIGHT_FUSION_CL",0,port,b,1000);
-    if(r) MEDIA_POOL_PutBuffer(b);
+    MEDIA_BUFFER b;
+    int r = make_frame(pool, layout, bytes, source, &b);
+
+    if (r)
+        return r;
+    r = MEDIA_SYS_SendFrame("THERMAL_LOWLIGHT_FUSION_CL", 0, port, b, 1000);
+    /* 送帧成功后所有权归模块，不能再 PutBuffer；失败时 buffer 还在我们手里。 */
+    if (r)
+        MEDIA_POOL_PutBuffer(b);
     return r;
 }
+
 int main(int argc, char **argv)
 {
-    int mode=argc>1?atoi(argv[1]):0, r=1, created=0, started=0;
-    const char *output=argc>2?argv[2]:"thermal_lowlight_fusion_frame.nv12";
-    const char *plugin=argc>3?argv[3]:"../../plugins/libmedia_thermal_lowlight_fusion.so";
-    MEDIA_VIDEO_LAYOUT L,OL; size_t in_bytes=0,out_bytes=0;
-    MEDIA_THERMAL_LOWLIGHT_FUSION_CL_ATTR a; MEDIA_BUFFER out; MEDIA_BUFFER_META meta; FILE *fp;
-    if (MEDIA_SYS_Init()!=0) return 1;
-    if (MEDIA_PLUGIN_Load(plugin)<0) { fprintf(stderr,"load %s failed\n",plugin); goto done; }
-    if (MEDIA_VIDEO_BuildLinearLayout(W,H,FMT,&L,&in_bytes)!=0 ||
-        MEDIA_VIDEO_BuildLinearLayout(W,H,FMT,&OL,&out_bytes)!=0) goto done;
-    if (MEDIA_POOL_CreateWithMode(POOL_A,in_bytes,4,MEDIA_POOL_ALLOC_MODE_NATIVE)!=0 ||
-        MEDIA_POOL_CreateWithMode(POOL_B,in_bytes,4,MEDIA_POOL_ALLOC_MODE_NATIVE)!=0 ||
-        MEDIA_POOL_CreateWithMode(POOL_OUT,out_bytes,4,MEDIA_POOL_ALLOC_MODE_NATIVE)!=0) goto done;
-    memset(&a,0,sizeof(a)); a.width=W; a.height=H; a.format=FMT; a.input_stride=L.pitch_bytes[0]; a.output_stride=OL.pitch_bytes[0]; a.output_pool_id=POOL_OUT; a.mode=mode; a.thermal_weight=0.5f; a.hot_threshold=0.65f; a.hot_soft_width=0.15f; a.overlay_alpha=0.70f; a.pyramid_levels=2; a.algo=0; a.luma_mode=0; a.detail_gain=0.35f; a.detail_threshold=0.035f; a.max_luma_delta=0.12f; a.detail_base_radius=6;
-    r=MEDIA_PLUGIN_CreateModule("THERMAL_LOWLIGHT_FUSION_CL",0,&a,sizeof(a));
-    if(r) { fprintf(stderr,"create failed: %d\n",r); goto done; } created=1;
-    r=MEDIA_PLUGIN_Start("THERMAL_LOWLIGHT_FUSION_CL",0);
-    if(r) { fprintf(stderr,"start failed: %d\n",r); goto done; } started=1;
-    /* Secondary first: the primary input may trigger processing immediately. */
-    if ((r=send_frame(POOL_B,&L,in_bytes,1,"input1"))!=0 ||
-        (r=send_frame(POOL_A,&L,in_bytes,0,"input0"))!=0) {
-        fprintf(stderr,"send failed: %d\n",r); goto done;
+    int mode = argc > 1 ? atoi(argv[1]) : 0,
+        r = 1, created = 0, started = 0;
+    const char *output = argc > 2 ? argv[2] : "thermal_lowlight_fusion_frame.nv12";
+    const char *plugin = argc > 3 ? argv[3] : "../../plugins/libmedia_thermal_lowlight_fusion.so";
+    MEDIA_VIDEO_LAYOUT L, OL;
+    size_t in_bytes = 0, out_bytes = 0;
+    MEDIA_THERMAL_LOWLIGHT_FUSION_CL_ATTR a;
+    MEDIA_BUFFER out;
+    MEDIA_BUFFER_META meta;
+    FILE *fp;
+
+    /* [1] 初始化并加载插件。插件和它的 .sig 必须成对存在。 */
+    if (MEDIA_SYS_Init() != 0)
+        return 1;
+    if (MEDIA_PLUGIN_Load(plugin) < 0) {
+        fprintf(stderr, "load %s failed\n", plugin);
+        goto done;
     }
-    r=MEDIA_SYS_GetFrame("THERMAL_LOWLIGHT_FUSION_CL",0,"output0",&out,5000);
-    if(r) { fprintf(stderr,"get failed: %d\n",r); goto done; }
-    if (MEDIA_BUFFER_GetMeta(out,&meta)!=0 || !meta.valid ||
-        MEDIA_POOL_BeginCpuAccess(out,DMA_BUF_SYNC_READ)!=0) {
-        fprintf(stderr,"output metadata/access failed\n");
-        MEDIA_SYS_ReleaseFrame("THERMAL_LOWLIGHT_FUSION_CL",0,"output0",out); r=1; goto done;
+
+    /* [2] 输入和输出都是 W x H、同格式，所以两个 layout 的尺寸一样，
+     *     但仍然分开算：将来把输出换成别的格式时不用改结构。 */
+    if (MEDIA_VIDEO_BuildLinearLayout(W, H, FMT, &L, &in_bytes) != 0 ||
+        MEDIA_VIDEO_BuildLinearLayout(W, H, FMT, &OL, &out_bytes) != 0)
+        goto done;
+    if (MEDIA_POOL_CreateWithMode(POOL_A, in_bytes, 4, MEDIA_POOL_ALLOC_MODE_NATIVE) != 0 ||
+        MEDIA_POOL_CreateWithMode(POOL_B, in_bytes, 4, MEDIA_POOL_ALLOC_MODE_NATIVE) != 0 ||
+        MEDIA_POOL_CreateWithMode(POOL_OUT, out_bytes, 4, MEDIA_POOL_ALLOC_MODE_NATIVE) != 0)
+        goto done;
+
+    /* [3] 关键配置。stride 必须来自 layout，不能手写 width：
+     *     硬件对齐后每行通常比 W 长，写错会让模块按错误的行宽读内存。
+     *     mode 决定输出是灰阶还是带热点伪彩。 */
+    memset(&a, 0, sizeof(a));
+    a.width = W;
+    a.height = H;
+    a.format = FMT;
+    a.input_stride = L.pitch_bytes[0];           /* 输入每行实际字节数 */
+    a.output_stride = OL.pitch_bytes[0];         /* 输出每行实际字节数 */
+    a.output_pool_id = POOL_OUT;
+    a.mode = mode;                               /* 0=GRAY，1=HOT_OVERLAY */
+    a.thermal_weight = 0.5f;                     /* 热成像在融合中的权重 */
+    a.hot_threshold = 0.65f;                     /* 超过这个归一化亮度算热点 */
+    a.hot_soft_width = 0.15f;                    /* 阈值过渡宽度，越小边界越硬 */
+    a.overlay_alpha = 0.70f;                     /* 热点伪彩的叠加强度 */
+    a.pyramid_levels = 2;                        /* 多尺度分解层数 */
+    a.algo = 0;                                  /* 融合算法选择 */
+    a.luma_mode = 0;                             /* 0=直接用低照度 Y；1=注入热成像细节 */
+    a.detail_gain = 0.35f;                       /* 注入细节的增益 */
+    a.detail_threshold = 0.035f;                 /* 低于它的细节不注入，用来压噪 */
+    a.max_luma_delta = 0.12f;                    /* 单像素亮度最大改动量 */
+    a.detail_base_radius = 6;                    /* 提取细节的基准半径 */
+
+    /* [4] 创建并启动。 */
+    r = MEDIA_PLUGIN_CreateModule("THERMAL_LOWLIGHT_FUSION_CL", 0, &a, sizeof(a));
+    if (r) {
+        fprintf(stderr, "create failed: %d\n", r);
+        goto done;
     }
-    fp=fopen(output,"wb");
-    void *p=MEDIA_POOL_GetVaddr(out);
-    size_t n=meta.len <= MEDIA_POOL_GetSize(out) ? meta.len : MEDIA_POOL_GetSize(out);
-    r=(fp && p && fwrite(p,1,n,fp)==n)?0:1;
-    if(fp) fclose(fp);
-    MEDIA_POOL_EndCpuAccess(out,DMA_BUF_SYNC_READ);
-    MEDIA_SYS_ReleaseFrame("THERMAL_LOWLIGHT_FUSION_CL",0,"output0",out);
-    if(r) fprintf(stderr,"write failed: %s\n",output);
-    else printf("THERMAL_LOWLIGHT_FUSION_CL mode=%d %ux%u bytes=%zu -> %s\n",mode,meta.u.video.visible_width,meta.u.video.visible_height,n,output);
+    created = 1;
+
+    r = MEDIA_PLUGIN_Start("THERMAL_LOWLIGHT_FUSION_CL", 0);
+    if (r) {
+        fprintf(stderr, "start failed: %d\n", r);
+        goto done;
+    }
+    started = 1;
+
+    /* [5] 先送次路再送主路：主路到达时可能立刻触发一次处理，
+     *     如果次路还没到，那一帧就是缺一路的结果。 */
+    if ((r = send_frame(POOL_B, &L, in_bytes, 1, "input1")) != 0 ||
+        (r = send_frame(POOL_A, &L, in_bytes, 0, "input0")) != 0) {
+        fprintf(stderr, "send failed: %d\n", r);
+        goto done;
+    }
+
+    /* [6] 取融合结果。 */
+    r = MEDIA_SYS_GetFrame("THERMAL_LOWLIGHT_FUSION_CL", 0, "output0", &out, 5000);
+    if (r) {
+        fprintf(stderr, "get failed: %d\n", r);
+        goto done;
+    }
+
+    if (MEDIA_BUFFER_GetMeta(out, &meta) != 0 || !meta.valid ||
+        MEDIA_POOL_BeginCpuAccess(out, DMA_BUF_SYNC_READ) != 0) {
+        fprintf(stderr, "output metadata/access failed\n");
+        MEDIA_SYS_ReleaseFrame("THERMAL_LOWLIGHT_FUSION_CL", 0, "output0", out);
+        r = 1;
+        goto done;
+    }
+
+    /* meta.len 是有效字节数，可能比 Pool 容量小（有对齐填充）。 */
+    fp = fopen(output, "wb");
+    void *p = MEDIA_POOL_GetVaddr(out);
+    size_t n = meta.len <= MEDIA_POOL_GetSize(out) ? meta.len : MEDIA_POOL_GetSize(out);
+
+    r = (fp && p && fwrite(p, 1, n, fp) == n) ? 0 : 1;
+    if (fp)
+        fclose(fp);
+    MEDIA_POOL_EndCpuAccess(out, DMA_BUF_SYNC_READ);
+    MEDIA_SYS_ReleaseFrame("THERMAL_LOWLIGHT_FUSION_CL", 0, "output0", out);
+    if (r)
+        fprintf(stderr, "write failed: %s\n", output);
+    else
+        printf("THERMAL_LOWLIGHT_FUSION_CL mode=%d %ux%u bytes=%zu -> %s\n", mode,
+               meta.u.video.visible_width, meta.u.video.visible_height, n, output);
+
 done:
-    if(started) MEDIA_PLUGIN_Stop("THERMAL_LOWLIGHT_FUSION_CL",0);
-    if(created) MEDIA_PLUGIN_DestroyModule("THERMAL_LOWLIGHT_FUSION_CL",0);
-    MEDIA_POOL_Destroy(POOL_MASK); MEDIA_POOL_Destroy(POOL_OUT); MEDIA_POOL_Destroy(POOL_B); MEDIA_POOL_Destroy(POOL_A);
-    MEDIA_SYS_Exit(); return r?1:0;
+    /* 逆序拆解：停模块 -> 销毁模块 -> 销毁 Pool -> 退出系统。
+     * POOL_MASK 从未创建过，但 Destroy 一个不存在的 Pool 是安全的空操作。 */
+    if (started)
+        MEDIA_PLUGIN_Stop("THERMAL_LOWLIGHT_FUSION_CL", 0);
+    if (created)
+        MEDIA_PLUGIN_DestroyModule("THERMAL_LOWLIGHT_FUSION_CL", 0);
+    MEDIA_POOL_Destroy(POOL_MASK);
+    MEDIA_POOL_Destroy(POOL_OUT);
+    MEDIA_POOL_Destroy(POOL_B);
+    MEDIA_POOL_Destroy(POOL_A);
+    MEDIA_SYS_Exit();
+    return r ? 1 : 0;
 }
