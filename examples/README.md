@@ -59,6 +59,16 @@ ffplay -f rawvideo -pixel_format nv12 -video_size 640x480 /tmp/color.nv12
 
 如果这里失败，先不要调算法模块：检查 `libmedia.so`、`plugins/libmedia_tpg.so`、`.sig` 是否在发布包中，并确认 `LD_LIBRARY_PATH` 同时包含 `lib` 和 `plugins`。
 
+### 有 14 个例子必须站在自己的构建目录里运行
+
+它们的源码把插件目录写成相对路径 `../../plugins`，只相对于**当前工作目录**解析。从仓库根执行 `./build/<名字>/<程序>` 会报 `plugin ../../plugins/libmedia_xxx.so: not found`——这是路径问题，不是插件或签名坏了。正确写法是多加一个 `cd`：
+
+```sh
+(cd build/mcf_fusion && ./mcf_fusion)
+```
+
+这 14 个是：`blend_pyr` `dualview` `edof` `exposure_fusion` `fluo_visible_fusion` `load_all` `mcf_fusion` `minimal` `panorama` `stereo_3d` `svm_3d` `thermal_lowlight_fusion` `vmix` `vmix_rga`。其余例子（含上面的 `tpg`）用 `LD_LIBRARY_PATH` 找插件，从仓库根运行即可。也可以自己对这 14 个设置 `LD_LIBRARY_PATH="$PWD/lib:$PWD/plugins"` 后仍从根运行，但插件路径写死在源码里，`cd` 进去更稳妥。
+
 ## 3. 每个处理教程都在做什么
 
 大多数图像教程遵循同一条最小管线：
